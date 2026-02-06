@@ -346,7 +346,6 @@
     if (!inwrapAnchor) {
       inwrapAnchor = document.createElement("div");
       inwrapAnchor.className = "school-ac-inwrap-anchor";
-      // Put it near the input (after input if possible) to keep it logically grouped
       try {
         schoolEl.insertAdjacentElement("afterend", inwrapAnchor);
       } catch (_) {
@@ -354,14 +353,12 @@
       }
     }
 
-    // Create the dropdown list inside the anchor
+    // Create dropdown list inside the anchor
     const list = document.createElement("div");
     list.className = "school-ac-list";
     inwrapAnchor.appendChild(list);
 
     // 2) Hint + Error placement:
-    // - If tweak applied: inside wrapper (works better with the theme grid)
-    // - Else: outside wrapper (robust, doesn't look like part of input)
     const hint = document.createElement("div");
     hint.className = "school-ac-hint";
     hint.textContent = cfg.hintText || DEFAULTS.hintText;
@@ -372,28 +369,20 @@
     let externalBlockForSpacing = null;
 
     if (tweak.applied) {
-      // Place inside wrapper, but in our own block class so we can keep it “non-input”
       hint.classList.add("school-ac-inwrap");
       err.classList.add("school-ac-inwrap");
-
-      // Put after the inwrap anchor so it appears below the dropdown area logically
       inwrapAnchor.insertAdjacentElement("afterend", hint);
       hint.insertAdjacentElement("afterend", err);
     } else {
-      // Outside wrapper fallback
       const outside = document.createElement("div");
       outside.className = "school-ac-outside";
-
-      // Put right after the wrapper
       if (fieldWrap && fieldWrap.insertAdjacentElement) {
         fieldWrap.insertAdjacentElement("afterend", outside);
       } else {
         schoolEl.insertAdjacentElement("afterend", outside);
       }
-
       outside.appendChild(hint);
       outside.appendChild(err);
-
       externalBlockForSpacing = outside;
     }
 
@@ -414,8 +403,11 @@
     const schoolsPrepared = applyActivityFilter_(schoolsPreparedAll, cfg.activityFilter);
     const fuse = buildFuse_(schoolsPrepared, cfg.threshold);
 
+    // --- Persistent selection state (survives Squarespace re-renders) ---
     let selected = null;
-    let activeIndex = -1;
+    let selectedName = "";
+    let selectedId = "";
+    let lastTyped = "";
 
     function showError(msg) {
       err.textContent = msg;
@@ -427,21 +419,62 @@
       err.classList.remove("is-visible");
       schoolEl.removeAttribute("aria-invalid");
     }
+
     function hideList() {
       list.style.display = "none";
       list.innerHTML = "";
       activeIndex = -1;
     }
+
     function clearSelected() {
       selected = null;
+      selectedName = "";
+      selectedId = "";
       idEl.value = "";
+      delete schoolEl.dataset.selectedSchoolName;
+      delete schoolEl.dataset.selectedSchoolId;
     }
+
     function setSelected(s) {
       selected = s;
-      schoolEl.value = s.name;
-      idEl.value = s.id;
+      selectedName = s?.name || "";
+      selectedId = s?.id || "";
+
+      schoolEl.value = selectedName;
+      idEl.value = selectedId;
+
+      // Persist for resilience
+      schoolEl.dataset.selectedSchoolName = selectedName;
+      schoolEl.dataset.selectedSchoolId = selectedId;
+
       clearError();
       hideList();
+    }
+
+    function getStoredSelectedName_() {
+      return selectedName || schoolEl.dataset.selectedSchoolName || "";
+    }
+    function getStoredSelectedId_() {
+      return selectedId || schoolEl.dataset.selectedSchoolId || "";
+    }
+
+    function restoreIfNeeded_(reason) {
+      if (cbEl.checked) return;
+
+      const storedName = getStoredSelectedName_();
+      const storedId = getStoredSelectedId_();
+
+      if (!storedName || !storedId) return;
+
+      // If Squarespace overwrote the visible input value, restore it
+      if (schoolEl.value !== storedName) {
+        schoolEl.value = storedName;
+      }
+
+      // Also ensure hidden ID remains correct
+      if (idEl.value !== storedId) {
+        idEl.value = storedId;
+      }
     }
 
     function search(q) {
@@ -449,6 +482,8 @@
       if (!qq) return [];
       return fuse.search(qq).map((r) => r.item).slice(0, cfg.maxSuggestions || DEFAULTS.maxSuggestions);
     }
+
+    let activeIndex = -1;
 
     function render(items) {
       list.innerHTML = "";
@@ -463,13 +498,13 @@
         const row = document.createElement("div");
         row.className = "school-ac-item";
         row.innerHTML =
-          `<strong>${esc(s.name)}</strong>` +
-          (s.city ? ` <span>– ${esc(s.city)}</span>` : "") +
-          (s.isActive ? " • Aktiv" : " • Inte aktiv");
+            `<strong>${esc(s.name)}</strong>` +
+            (s.city ? ` <span>– ${esc(s.city)}</span>` : "") +
+            (s.isActive ? " • Aktiv" : " • Inte aktiv");
 
         row.addEventListener("mousedown", (e) => {
-          e.preventDefault();
-          setSelected(s);
+            e.preventDefault();
+            setSelected(s);
         });
 
         list.appendChild(row);
@@ -478,7 +513,7 @@
       list.style.display = "block";
     }
 
-    // Events
+    // --- Event wiring ---
     schoolEl.addEventListener("input", () => {
       clearError();
 
@@ -488,7 +523,13 @@
         return;
       }
 
-      if (selected && schoolEl.value !== selected.name) clearSelected();
+      // If user types anything that deviates from the stored selection, drop the selection
+      const storedName = getStoredSelectedName_();
+      if (storedName && schoolEl.value !== storedName) {
+        lastTyped = schoolEl.value;
+        clearSelected();
+      }
+
       render(search(schoolEl.value));
     });
 
@@ -505,9 +546,9 @@
         activeIndex = Math.max(activeIndex - 1, 0);
       } else if (e.key === "Enter") {
         if (activeIndex >= 0) {
-          e.preventDefault();
-          const items = search(schoolEl.value);
-          if (items[activeIndex]) setSelected(items[activeIndex]);
+            e.preventDefault();
+            const items = search(schoolEl.value);
+            if (items[activeIndex]) setSelected(items[activeIndex]);
         }
       } else if (e.key === "Escape") {
         hideList();
@@ -517,17 +558,44 @@
       if (activeIndex >= 0 && rows[activeIndex]) rows[activeIndex].classList.add("is-active");
     });
 
-    schoolEl.addEventListener("blur", () => setTimeout(hideList, 150));
+    // Hide list shortly after blur (allows mousedown selection)
+    schoolEl.addEventListener("blur", () => {
+      setTimeout(() => {
+        hideList();
+        // After Squarespace handlers run, restore selection if it got overwritten
+        restoreIfNeeded_("schoolBlur");
+      }, 0);
+    });
 
     cbEl.addEventListener("change", () => {
       clearError();
       if (cbEl.checked) {
         hideList();
-        clearSelected();
+        clearSelected(); // free-text mode => no ID/selection
       } else {
+        // back to must-choose mode
         clearSelected();
+        // optional: restore typed text if you want
+        if (lastTyped) schoolEl.value = lastTyped;
       }
     });
+
+    // Key part: Squarespace may re-apply values when other fields are edited
+    // Restore after those events fire.
+    form.addEventListener("focusin", (e) => {
+      if (e.target !== schoolEl) setTimeout(() => restoreIfNeeded_("focusin-other"), 0);
+    });
+
+    form.addEventListener("change", (e) => {
+      if (e.target !== schoolEl) setTimeout(() => restoreIfNeeded_("change-other"), 0);
+    });
+
+    // Optional extra safety: if Squarespace mutates the input value via JS without events
+    // we can observe attribute changes (rare but happens in some setups).
+    const mo = new MutationObserver(() => setTimeout(() => restoreIfNeeded_("mutation"), 0));
+    try {
+        mo.observe(schoolEl, { attributes: true, attributeFilter: ["value"] });
+    } catch (_) {}
 
     function validateOrBlock(evt) {
       clearError();
@@ -542,21 +610,36 @@
         return true;
       }
 
-      if (!selected || !idEl.value) {
+      const storedName = getStoredSelectedName_();
+      const storedId = getStoredSelectedId_();
+
+      if (!storedName || !storedId) {
         evt.preventDefault(); evt.stopPropagation(); evt.stopImmediatePropagation();
         showError(cfg.errorChoose || DEFAULTS.errorChoose);
         return false;
       }
+
+      // Ensure fields are correct right before submit
+      schoolEl.value = storedName;
+      idEl.value = storedId;
 
       return true;
     }
 
     form.addEventListener("submit", validateOrBlock);
     const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
-    if (submitBtn) submitBtn.addEventListener("click", validateOrBlock);
+    if (submitBtn) {
+      submitBtn.addEventListener("click", (e) => {
+      // Restore right before Squarespace reads values
+      setTimeout(() => restoreIfNeeded_("submitClick"), 0);
+        // Also validate
+        validateOrBlock(e);
+      });
+    }
 
     return true;
   }
+
 
   // ---------- init ----------
   let initRunning = false;
