@@ -340,7 +340,7 @@
     // Theme tweak result determines hint/error placement policy
     const tweak = tryApplyFormInputEffectsHack_(fieldWrap, !!cfg.themeTweaks?.tryFormInputEffectsGridHack);
 
-    // 1) LIST always inside wrapper via a zero-height anchor (no layout shift)
+    // LIST: always inside wrapper via a zero-height anchor (no layout shift)
     let inwrapAnchor = fieldWrap?.querySelector(":scope > .school-ac-inwrap-anchor");
     if (!inwrapAnchor) {
       inwrapAnchor = document.createElement("div");
@@ -356,7 +356,7 @@
     list.className = "school-ac-list";
     inwrapAnchor.appendChild(list);
 
-    // 2) Hint + Error placement:
+    // Hint + Error
     const hint = document.createElement("div");
     hint.className = "school-ac-hint";
     hint.textContent = cfg.hintText || DEFAULTS.hintText;
@@ -381,23 +381,36 @@
       outside.appendChild(err);
     }
 
-    // dataset per config
+    // Data + fuse
     const schoolsPrepared = applyActivityFilter_(schoolsPreparedAll, cfg.activityFilter);
     const fuse = buildFuse_(schoolsPrepared, cfg.threshold);
 
-    // --- Selection state + guarded lock ---
-    let selected = null;
+    // --- State ---
     let selectedName = "";
     let selectedId = "";
-    let lastTyped = "";
-    let isLocked = false;
+    let stickyValue = "";      // “senaste texten” som vi vill behålla när fältet inte är i fokus
+    let isReadOnlyLocked = false;
     let activeIndex = -1;
 
-    // Native value getter/setter (for safe writes even when we override)
+    // Native value getter/setter (safe direct set)
     const _valueDesc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
     const _origGetValue = _valueDesc.get;
     const _origSetValue = _valueDesc.set;
 
+    // Decide what value we should protect when field is NOT focused
+    function guardValue_() {
+      if (document.activeElement === schoolEl) return null; // allow edits while focused
+
+      // If checkbox NOT checked and we have a selected school -> lock to selectedName
+      if (!cbEl.checked && selectedName && selectedId) return selectedName;
+
+      // Otherwise, if we have sticky text -> keep that stable
+      if (stickyValue) return stickyValue;
+
+      return null;
+    }
+
+    // Install guard ONCE for this element
     function installValueGuard_() {
       if (schoolEl.dataset.valueGuardInstalled === "1") return;
 
@@ -408,9 +421,9 @@
           return _origGetValue.call(this);
         },
         set(v) {
-          // If locked + selected exists: clamp to selectedName
-          if (isLocked && selectedName && v !== selectedName) {
-            _origSetValue.call(this, selectedName);
+          const gv = guardValue_();
+          if (gv != null && v !== gv) {
+            _origSetValue.call(this, gv);
             return;
           }
           _origSetValue.call(this, v);
@@ -420,30 +433,16 @@
       schoolEl.dataset.valueGuardInstalled = "1";
     }
 
-    function uninstallValueGuard_() {
-      if (schoolEl.dataset.valueGuardInstalled !== "1") return;
-      delete schoolEl.value; // remove own-property override
-      delete schoolEl.dataset.valueGuardInstalled;
-    }
+    installValueGuard_();
 
-    function lockField_() {
-      if (!selectedName || !selectedId || cbEl.checked) return;
-      isLocked = true;
+    function lockReadOnly_() {
+      isReadOnlyLocked = true;
       schoolEl.readOnly = true;
-      installValueGuard_();
-
-      // Force correct values (use native setter to avoid recursion)
-      _origSetValue.call(schoolEl, selectedName);
-      idEl.value = selectedId;
-
-      schoolEl.dataset.selectedSchoolName = selectedName;
-      schoolEl.dataset.selectedSchoolId = selectedId;
     }
 
-    function unlockField_() {
-      isLocked = false;
+    function unlockReadOnly_() {
+      isReadOnlyLocked = false;
       schoolEl.readOnly = false;
-      uninstallValueGuard_();
     }
 
     function showError(msg) {
@@ -464,50 +463,37 @@
       activeIndex = -1;
     }
 
-    function clearSelected() {
-      selected = null;
+    function clearSelectionOnly_() {
       selectedName = "";
       selectedId = "";
       idEl.value = "";
-      delete schoolEl.dataset.selectedSchoolName;
-      delete schoolEl.dataset.selectedSchoolId;
-      unlockField_();
+      unlockReadOnly_();
     }
 
-    function setSelected(s) {
-      // Make sure guard isn't blocking switching selection
-      unlockField_();
+    function setSelected_(s) {
+      clearError();
+      hideList();
 
-      selected = s;
       selectedName = s?.name || "";
       selectedId = s?.id || "";
 
       _origSetValue.call(schoolEl, selectedName);
       idEl.value = selectedId;
 
-      schoolEl.dataset.selectedSchoolName = selectedName;
-      schoolEl.dataset.selectedSchoolId = selectedId;
+      // After selection, keep stickyValue empty (so we don’t “fight” with selection)
+      stickyValue = "";
 
-      clearError();
-      hideList();
-
-      lockField_();
+      // Lock UX typing, and guard locks programmatic overwrites when unfocused
+      lockReadOnly_();
     }
 
-    function getStoredSelectedName_() {
-      return selectedName || schoolEl.dataset.selectedSchoolName || "";
-    }
-    function getStoredSelectedId_() {
-      return selectedId || schoolEl.dataset.selectedSchoolId || "";
-    }
-
-    function search(q) {
+    function search_(q) {
       const qq = String(q || "").trim();
       if (!qq) return [];
-      return fuse.search(qq).map((r) => r.item).slice(0, cfg.maxSuggestions || DEFAULTS.maxSuggestions);
+      return fuse.search(qq).map(r => r.item).slice(0, cfg.maxSuggestions || DEFAULTS.maxSuggestions);
     }
 
-    function render(items) {
+    function render_(items) {
       list.innerHTML = "";
       activeIndex = -1;
 
@@ -526,7 +512,7 @@
 
         row.addEventListener("mousedown", (e) => {
           e.preventDefault();
-          setSelected(s);
+          setSelected_(s);
         });
 
         list.appendChild(row);
@@ -535,38 +521,41 @@
       list.style.display = "block";
     }
 
-    // --- UX: unlock when user returns to the school field ---
+    // --- Unlock readOnly when user returns to field (click/tab) ---
     schoolEl.addEventListener("mousedown", () => {
-      if (!isLocked) return;
-      unlockField_();
+      if (isReadOnlyLocked) unlockReadOnly_();
     });
 
     schoolEl.addEventListener("focus", () => {
-      if (!isLocked) return;
-      unlockField_();
-      try { schoolEl.select(); } catch (_) {}
+      if (isReadOnlyLocked) {
+        unlockReadOnly_();
+        try { schoolEl.select(); } catch (_) {}
+      }
     });
 
-    // --- Event wiring ---
+    // --- Typing in school field ---
     schoolEl.addEventListener("input", () => {
       clearError();
 
+      // Ensure user can type
+      if (isReadOnlyLocked) unlockReadOnly_();
+
+      // Update sticky text (so Squarespace can't overwrite it when you leave the field)
+      stickyValue = schoolEl.value || "";
+
       if (cbEl.checked) {
+        // Free-text mode: no suggestions, no selection id
         hideList();
-        clearSelected();
+        clearSelectionOnly_();
         return;
       }
 
-      // If we were locked (shouldn't accept typing), ensure unlocked
-      if (isLocked) unlockField_();
-
-      const storedName = getStoredSelectedName_();
-      if (storedName && schoolEl.value !== storedName) {
-        lastTyped = schoolEl.value;
-        clearSelected();
+      // Must-choose mode: if user edits away from selectedName => clear selection
+      if (selectedName && schoolEl.value !== selectedName) {
+        clearSelectionOnly_();
       }
 
-      render(search(schoolEl.value));
+      render_(search_(schoolEl.value));
     });
 
     schoolEl.addEventListener("keydown", (e) => {
@@ -583,47 +572,36 @@
       } else if (e.key === "Enter") {
         if (activeIndex >= 0) {
           e.preventDefault();
-          const items = search(schoolEl.value);
-          if (items[activeIndex]) setSelected(items[activeIndex]);
+          const items = search_(schoolEl.value);
+          if (items[activeIndex]) setSelected_(items[activeIndex]);
         }
       } else if (e.key === "Escape") {
         hideList();
       }
 
-      rows.forEach((r) => r.classList.remove("is-active"));
+      rows.forEach(r => r.classList.remove("is-active"));
       if (activeIndex >= 0 && rows[activeIndex]) rows[activeIndex].classList.add("is-active");
     });
 
-    // Hide list shortly after blur (allows mousedown selection)
     schoolEl.addEventListener("blur", () => {
-      setTimeout(() => {
-        hideList();
-
-        // If selection exists, enforce + lock again after leaving field
-        const storedName = getStoredSelectedName_();
-        const storedId = getStoredSelectedId_();
-
-        if (!cbEl.checked && storedName && storedId) {
-          selectedName = storedName;
-          selectedId = storedId;
-          lockField_();
-        }
-      }, 0);
+      setTimeout(() => hideList(), 150);
     });
 
+    // Checkbox toggling:
+    // - Keep whatever text the user has (no swapping between two values)
+    // - Clear selection id when checkbox state changes
     cbEl.addEventListener("change", () => {
       clearError();
+      hideList();
 
-      if (cbEl.checked) {
-        // free-text mode
-        hideList();
-        clearSelected();
-        unlockField_();
-      } else {
-        // must-choose mode again
-        clearSelected();
-        if (lastTyped) _origSetValue.call(schoolEl, lastTyped);
-      }
+      // Always keep current visible text as sticky
+      stickyValue = schoolEl.value || "";
+
+      // Clear selection so we don't flip back/forth
+      clearSelectionOnly_();
+
+      // Ensure user can type in free-text mode
+      if (cbEl.checked) unlockReadOnly_();
     });
 
     function validateOrBlock(evt) {
@@ -631,45 +609,40 @@
       const text = String(schoolEl.value || "").trim();
 
       if (cbEl.checked) {
+        // Free text mode must have something
         if (!text) {
           evt.preventDefault(); evt.stopPropagation(); evt.stopImmediatePropagation();
           showError(cfg.errorFreeText || DEFAULTS.errorFreeText);
           return false;
         }
+        // Keep id empty in free-text mode
+        idEl.value = "";
+        // Keep sticky so external scripts can't wipe it after you leave the field
+        stickyValue = text;
         return true;
       }
 
-      const storedName = getStoredSelectedName_();
-      const storedId = getStoredSelectedId_();
-
-      if (!storedName || !storedId) {
+      // Must-choose mode
+      if (!selectedName || !selectedId) {
         evt.preventDefault(); evt.stopPropagation(); evt.stopImmediatePropagation();
         showError(cfg.errorChoose || DEFAULTS.errorChoose);
         return false;
       }
 
-      // Ensure correct values right before submit (native set to avoid guard recursion issues)
-      selectedName = storedName;
-      selectedId = storedId;
-      _origSetValue.call(schoolEl, storedName);
-      idEl.value = storedId;
-
-      // Keep locked for submit
-      lockField_();
-
+      // Enforce final values
+      _origSetValue.call(schoolEl, selectedName);
+      idEl.value = selectedId;
+      lockReadOnly_();
       return true;
     }
 
     form.addEventListener("submit", validateOrBlock);
     const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
-    if (submitBtn) {
-      submitBtn.addEventListener("click", (e) => {
-        validateOrBlock(e);
-      });
-    }
+    if (submitBtn) submitBtn.addEventListener("click", validateOrBlock);
 
     return true;
   }
+
 
 
 
