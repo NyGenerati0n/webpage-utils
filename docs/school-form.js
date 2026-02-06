@@ -37,24 +37,33 @@
     const style = document.createElement("style");
     style.id = "school-ac-styles";
     style.textContent = `
-      /* Overlay list - does not alter input styling */
-      .school-ac-list {
-        position: absolute;
-        z-index: 999999;
-        background: white;
-        border: 1px solid rgba(0,0,0,.15);
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 8px 24px rgba(0,0,0,.12);
-        display: none;
-        max-height: 320px;
-        overflow-y: auto;
-      }
-      .school-ac-item { padding: 10px 12px; cursor: pointer; font-size: 14px; }
-      .school-ac-item:hover, .school-ac-item.is-active { background: rgba(0,0,0,.06); }
-      .school-ac-hint { font-size: 12px; opacity: .75; margin-top: 6px; }
-      .school-ac-error { margin-top: 8px; font-size: 13px; color: #b00020; display: none; }
-      .school-ac-error.is-visible { display: block; }
+        .school-ac-anchor{
+            position: relative;
+            height: 0;
+            overflow: visible;
+        }
+
+        .school-ac-list{
+            position: absolute;
+            z-index: 2147483647;
+            left: 0; right: 0;
+            top: 6px;
+            background: white;
+            border: 1px solid rgba(0,0,0,.15);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,.12);
+            display: none;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .school-ac-item { padding: 10px 12px; cursor: pointer; font-size: 14px; }
+        .school-ac-item:hover, .school-ac-item.is-active { background: rgba(0,0,0,.06); }
+
+        .school-ac-hint { font-size: 12px; opacity: .75; margin-top: 6px; }
+        .school-ac-error { margin-top: 8px; font-size: 13px; color: #b00020; display: none; }
+        .school-ac-error.is-visible { display: block; }
     `;
     document.head.appendChild(style);
   }
@@ -254,9 +263,27 @@
     const idWrapper = idEl.closest(".field, .form-item, .form-field") || idEl.parentElement;
     if (idWrapper) idWrapper.style.display = "none";
 
-    // Insert hint + error near input (doesn't change input styling)
+
+    // Hitta wrappern runt fältet (Squarespace)
     const fieldWrap = schoolEl.closest(".field, .form-item, .form-field") || schoolEl.parentElement;
 
+    // Skapa en anchor direkt efter wrappern (inte i input-wrappen)
+    const anchor = document.createElement("div");
+    anchor.className = "school-ac-anchor";
+
+    // Lägg anchor efter fieldWrap om möjligt, annars efter input
+    if (fieldWrap && fieldWrap.insertAdjacentElement) {
+    fieldWrap.insertAdjacentElement("afterend", anchor);
+    } else {
+    schoolEl.insertAdjacentElement("afterend", anchor);
+    }
+
+    // Dropdown-listan ligger i anchor (absolut), så den hamnar visuellt rätt
+    const list = document.createElement("div");
+    list.className = "school-ac-list";
+    anchor.appendChild(list);
+
+    // Hint och error ska ligga UTANFÖR input-wrappen så de inte blir “en del av inputfältet”
     const hint = document.createElement("div");
     hint.className = "school-ac-hint";
     hint.textContent = cfg.hintText || DEFAULTS.hintText;
@@ -264,21 +291,9 @@
     const err = document.createElement("div");
     err.className = "school-ac-error";
 
-    // place hint+err after input inside same field wrapper if possible
-    try {
-      schoolEl.insertAdjacentElement("afterend", hint);
-      hint.insertAdjacentElement("afterend", err);
-    } catch (_) {
-      if (fieldWrap) {
-        fieldWrap.appendChild(hint);
-        fieldWrap.appendChild(err);
-      }
-    }
-
-    // Create dropdown list as an overlay attached to body (so no layout/style changes)
-    const list = document.createElement("div");
-    list.className = "school-ac-list";
-    document.body.appendChild(list);
+    // Lägg hint + error efter anchor (då ligger de “under fältet”, inte i fältets styling)
+    anchor.insertAdjacentElement("afterend", hint);
+    hint.insertAdjacentElement("afterend", err);
 
     // Filter dataset for this config
     const schoolsPrepared = applyActivityFilter_(schoolsPreparedAll, cfg.activityFilter);
@@ -289,12 +304,12 @@
     let activeIndex = -1;
 
     function positionList_() {
-      const rect = schoolEl.getBoundingClientRect();
-      const top = rect.bottom + window.scrollY + 6;
-      const left = rect.left + window.scrollX;
-      list.style.top = `${top}px`;
-      list.style.left = `${left}px`;
-      list.style.width = `${rect.width}px`;
+    //   const rect = schoolEl.getBoundingClientRect();
+    //   const top = rect.bottom + window.scrollY + 6;
+    //   const left = rect.left + window.scrollX;
+    //   list.style.top = `${top}px`;
+    //   list.style.left = `${left}px`;
+    //   list.style.width = `${rect.width}px`;
     }
 
     function showError(msg) {
@@ -331,28 +346,31 @@
     }
 
     function render(items) {
-      list.innerHTML = "";
-      activeIndex = -1;
-      if (!items.length) { hideList(); return; }
+        list.innerHTML = "";
+        activeIndex = -1;
 
-      items.forEach((s) => {
-        const row = document.createElement("div");
-        row.className = "school-ac-item";
-        row.innerHTML =
-          `<strong>${esc(s.name)}</strong>` +
-          (s.city ? ` <span>– ${esc(s.city)}</span>` : "") +
-          (s.isActive ? " • Aktiv" : " • Inte aktiv");
+        if (!items.length) {
+            hideList();
+            return;
+        }
 
-        row.addEventListener("mousedown", (e) => {
-          e.preventDefault();
-          setSelected(s);
+        items.forEach((s) => {
+            const row = document.createElement("div");
+            row.className = "school-ac-item";
+            row.innerHTML =
+            `<strong>${esc(s.name)}</strong>` +
+            (s.city ? ` <span>– ${esc(s.city)}</span>` : "") +
+            (s.isActive ? " • Aktiv" : " • Inte aktiv");
+
+            row.addEventListener("mousedown", (e) => {
+            e.preventDefault();
+            setSelected(s);
+            });
+
+            list.appendChild(row);
         });
 
-        list.appendChild(row);
-      });
-
-      positionList_();
-      list.style.display = "block";
+        list.style.display = "block";
     }
 
     // Keep list positioned on scroll/resize while open
