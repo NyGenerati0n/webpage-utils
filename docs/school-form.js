@@ -1,11 +1,18 @@
-/* school-form.js
- * Squarespace school autocomplete (Fuse) with config-driven selectors.
- * - Requires Fuse.js (auto-loads if missing)
- * - Supports JSONP for Apps Script URLs (to avoid CORS)
- * - Does NOT wrap/move the school input (to avoid changing its styling)
- * - Optional activity filter: activityFilter = "all" | "active" | "inactive" (default "all")
- * - If config missing/invalid, prints a debug dump + config template (and auto-copies if DevTools supports copy()).
+/* school-form.js (v4)
+ * Hybrid layout:
+ * - Dropdown list ALWAYS lives inside the field wrapper (popup-safe) via a zero-height anchor.
+ * - Hint+error live OUTSIDE wrapper by default.
+ * - If themeTweaks.tryFormInputEffectsGridHack succeeds (span.form-input-effects exists),
+ *   hint+error are placed INSIDE wrapper (because grid can accommodate it nicely).
+ * - If tweak enabled but element missing, logs and falls back to outside placement.
+ *
+ * Other:
+ * - Fuse.js auto-load if missing
+ * - JSONP for Apps Script URLs to avoid CORS
+ * - activityFilter: "all" | "active" | "inactive" (default "all")
+ * - spacing: { mode: "none" | "measure", desiredGap, maxAdjust } (default "none")
  */
+
 (() => {
   const GLOBAL_KEY = "SCHOOL_FORM_CONFIG";
   const ATTACHED_KEY = "schoolAutocompleteAttached";
@@ -13,13 +20,25 @@
   const DEFAULTS = {
     maxSuggestions: 8,
     threshold: 0.35,
+
     hintText: 'Välj en skola i listan – eller kryssa i “Min skola finns inte”.',
     errorChoose: 'Välj en skola i listan, eller kryssa i “Min skola finns inte”.',
     errorFreeText: 'Skriv din skolas namn, eller avmarkera och välj från listan.',
+
     activityFilter: "all", // "all" | "active" | "inactive"
+
+    spacing: {
+      mode: "none",      // "none" | "measure"
+      desiredGap: 6,
+      maxAdjust: 20,
+    },
+
+    themeTweaks: {
+      tryFormInputEffectsGridHack: false, // if ON: try span.form-input-effects { grid-row-end:3 }
+    },
   };
 
-  // --------- Utilities ---------
+  // ---------- util ----------
   const esc = (str) =>
     String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
@@ -32,47 +51,71 @@
       .replace(/ö/g, "o");
   }
 
-  function onceInjectStyles_() {
-    if (document.getElementById("school-ac-styles")) return;
-    const style = document.createElement("style");
-    style.id = "school-ac-styles";
-    style.textContent = `
-        .school-ac-anchor{
-            position: relative;
-            height: 0;
-            overflow: visible;
-        }
-
-        .school-ac-list{
-            position: absolute;
-            z-index: 2147483647;
-            left: 0; right: 0;
-            top: 0px;
-            background: white;
-            border: 1px solid rgba(0,0,0,.15);
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 8px 24px rgba(0,0,0,.12);
-            display: none;
-            max-height: 320px;
-            overflow-y: auto;
-        }
-
-        .school-ac-item { padding: 10px 12px; cursor: pointer; font-size: 14px; }
-        .school-ac-item:hover, .school-ac-item.is-active { background: rgba(0,0,0,.06); }
-
-        .school-ac-hint { font-size: 12px; opacity: .75; margin-top: 0px; }
-        .school-ac-error { margin-top: 8px; font-size: 13px; color: #b00020; display: none; }
-        .school-ac-error.is-visible { display: block; }
-    `;
-    document.head.appendChild(style);
+  function px_(v) {
+    const n = parseFloat(v || "0");
+    return Number.isFinite(n) ? n : 0;
   }
 
   function isAppsScriptUrl_(url) {
     return /script\.google\.com|script\.googleusercontent\.com/.test(String(url || ""));
   }
 
-  // --------- Fuse loader (optional) ---------
+  // ---------- CSS ----------
+  function onceInjectStyles_() {
+    if (document.getElementById("school-ac-styles")) return;
+    const style = document.createElement("style");
+    style.id = "school-ac-styles";
+    style.textContent = `
+      /* Anchor inside wrapper: takes no space, allows absolute dropdown without moving layout */
+      .school-ac-inwrap-anchor{
+        position: relative;
+        height: 0;
+        overflow: visible;
+        width: 100%;
+      }
+
+      /* If wrapper is grid, this makes anchor span full width */
+      .school-ac-inwrap-anchor{
+        grid-column: 1 / -1;
+      }
+
+      .school-ac-list{
+        position: absolute;
+        z-index: 2147483647;
+        left: 0; right: 0;
+        top: 6px;                 /* like v3 */
+        background: white;
+        border: 1px solid rgba(0,0,0,.15);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0,0,0,.12);
+        display: none;
+        max-height: 320px;
+        overflow-y: auto;
+        pointer-events: auto;
+      }
+
+      .school-ac-item{ padding: 10px 12px; cursor: pointer; font-size: 14px; }
+      .school-ac-item:hover, .school-ac-item.is-active{ background: rgba(0,0,0,.06); }
+
+      /* Hint/error blocks */
+      .school-ac-hint{ font-size: 12px; opacity: .75; margin-top: 6px; }
+      .school-ac-error{ margin-top: 8px; font-size: 13px; color: #b00020; display: none; }
+      .school-ac-error.is-visible{ display: block; }
+
+      /* When hint/error placed inside wrapper, keep them behaving like regular blocks */
+      .school-ac-inwrap{
+        grid-column: 1 / -1;
+        background: transparent;
+        border: 0;
+        padding: 0;
+        margin: 0;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // ---------- Fuse loader ----------
   function ensureFuse_() {
     if (window.Fuse) return Promise.resolve();
     return new Promise((resolve, reject) => {
@@ -84,7 +127,7 @@
     });
   }
 
-  // --------- Data loading + cache per URL ---------
+  // ---------- data loading (cached per URL) ----------
   const dataCache = new Map(); // url -> Promise<schoolsPrepared[]>
 
   function loadSchoolsPrepared_(dataUrl) {
@@ -144,20 +187,29 @@
     const f = (activityFilter ?? "all");
     if (f === "active" || f === true || f === 1) return schoolsPrepared.filter(s => s.isActive);
     if (f === "inactive" || f === false || f === 0) return schoolsPrepared.filter(s => !s.isActive);
-    return schoolsPrepared; // "all"
+    return schoolsPrepared;
   }
 
-  // --------- Debug helpers ---------
+  function buildFuse_(schoolsPrepared, threshold) {
+    return new window.Fuse(schoolsPrepared, {
+      includeScore: true,
+      threshold: typeof threshold === "number" ? threshold : DEFAULTS.threshold,
+      ignoreLocation: true,
+      keys: [
+        { name: "name", weight: 3 },
+        { name: "city", weight: 1 },
+        { name: "_fold", weight: 4 },
+      ],
+    });
+  }
+
+  // ---------- debug helpers ----------
   function suggestSelector_(el) {
     if (!el) return null;
     const tag = el.tagName.toLowerCase();
     if (el.id) return `#${CSS.escape(el.id)}`;
-    if (el.name) return `${tag}[name="${cssAttr_(el.name)}"]`;
-    if (el.type) return `${tag}[type="${cssAttr_(el.type)}"]`;
+    if (el.name) return `${tag}[name="${String(el.name).replace(/"/g, '\\"')}"]`;
     return tag;
-  }
-  function cssAttr_(s) {
-    return String(s).replace(/"/g, '\\"');
   }
 
   function debugDumpForms_() {
@@ -180,12 +232,14 @@
 
     const template = {
       schoolsDataUrl: "https://DIN_URL/exec?path=schools.json",
-      activityFilter: "all", // "all" | "active" | "inactive"
+      activityFilter: "all",
       selectors: {
         schoolInput: "SÄTT_SELECTOR_HÄR",
         notFoundCb: "SÄTT_SELECTOR_HÄR",
         schoolIdInput: "SÄTT_SELECTOR_HÄR",
       },
+      spacing: { mode: "none", desiredGap: 6, maxAdjust: 20 },
+      themeTweaks: { tryFormInputEffectsGridHack: false },
       maxSuggestions: 8,
       threshold: 0.35
     };
@@ -201,15 +255,12 @@
 
     console.log("Config-template (kopiera och fyll i selectors):");
     console.log(template);
-
-    // Auto-copy if DevTools supports it
     try {
       if (typeof copy === "function") {
         copy(`window.${GLOBAL_KEY} = [${JSON.stringify(template, null, 2)}];`);
         console.log("✅ Kopierade en config-template till clipboard (DevTools copy()).");
       }
     } catch (_) {}
-
     console.groupEnd();
 
     return info;
@@ -218,20 +269,42 @@
   window.SchoolFormAutocomplete = window.SchoolFormAutocomplete || {};
   window.SchoolFormAutocomplete.debug = debugDumpForms_;
 
-  // --------- Core attach logic ---------
-  function buildFuse_(schoolsPrepared, threshold) {
-    return new window.Fuse(schoolsPrepared, {
-      includeScore: true,
-      threshold: typeof threshold === "number" ? threshold : DEFAULTS.threshold,
-      ignoreLocation: true,
-      keys: [
-        { name: "name", weight: 3 },
-        { name: "city", weight: 1 },
-        { name: "_fold", weight: 4 },
-      ],
-    });
+  // ---------- spacing (optional) ----------
+  function measureAndTightenGap_(fieldWrap, externalBlock, spacingCfg) {
+    if (!fieldWrap || !externalBlock) return;
+    const desired = px_(spacingCfg?.desiredGap ?? DEFAULTS.spacing.desiredGap);
+    const maxAdjust = px_(spacingCfg?.maxAdjust ?? DEFAULTS.spacing.maxAdjust);
+
+    const r1 = fieldWrap.getBoundingClientRect();
+    const r2 = externalBlock.getBoundingClientRect();
+    const currentGap = r2.top - r1.bottom;
+
+    const delta = currentGap - desired;
+    if (delta > 0) {
+      const adjust = Math.min(delta, maxAdjust);
+      externalBlock.style.marginTop = (-adjust) + "px";
+    }
   }
 
+  // ---------- theme tweak ----------
+  function tryApplyFormInputEffectsHack_(fieldWrap, enable) {
+    if (!enable) return { applied: false, reason: "disabled" };
+    if (!fieldWrap) return { applied: false, reason: "no_fieldWrap" };
+
+    const effects = fieldWrap.querySelector("span.form-input-effects");
+    if (!effects) {
+      console.info(
+        "SchoolFormAutocomplete: themeTweaks.tryFormInputEffectsGridHack=ON men span.form-input-effects saknas → placerar hint/error utanför wrappern (fallback)."
+      );
+      return { applied: false, reason: "not_found" };
+    }
+
+    // Only change this element; does not move input or touch wrapper positioning context
+    effects.style.gridRowEnd = "3";
+    return { applied: true, reason: "ok" };
+  }
+
+  // ---------- attach ----------
   function attachFromConfig_(cfg, schoolsPreparedAll) {
     const selectors = cfg.selectors || {};
     const schoolEl = document.querySelector(selectors.schoolInput || "");
@@ -253,7 +326,6 @@
       console.warn("SchoolFormAutocomplete: hittade inget <form> runt schoolInput.");
       return false;
     }
-
     if (form.dataset[ATTACHED_KEY] === "1") return true;
     form.dataset[ATTACHED_KEY] = "1";
 
@@ -263,27 +335,33 @@
     const idWrapper = idEl.closest(".field, .form-item, .form-field") || idEl.parentElement;
     if (idWrapper) idWrapper.style.display = "none";
 
-
-    // Hitta wrappern runt fältet (Squarespace)
     const fieldWrap = schoolEl.closest(".field, .form-item, .form-field") || schoolEl.parentElement;
 
-    // Skapa en anchor direkt efter wrappern (inte i input-wrappen)
-    const anchor = document.createElement("div");
-    anchor.className = "school-ac-anchor";
+    // Theme tweak result determines hint/error placement policy
+    const tweak = tryApplyFormInputEffectsHack_(fieldWrap, !!cfg.themeTweaks?.tryFormInputEffectsGridHack);
 
-    // Lägg anchor efter fieldWrap om möjligt, annars efter input
-    if (fieldWrap && fieldWrap.insertAdjacentElement) {
-    fieldWrap.insertAdjacentElement("afterend", anchor);
-    } else {
-    schoolEl.insertAdjacentElement("afterend", anchor);
+    // 1) LIST always inside wrapper (if possible)
+    // Create/Reuse in-wrap anchor so dropdown doesn't change layout.
+    let inwrapAnchor = fieldWrap?.querySelector(":scope > .school-ac-inwrap-anchor");
+    if (!inwrapAnchor) {
+      inwrapAnchor = document.createElement("div");
+      inwrapAnchor.className = "school-ac-inwrap-anchor";
+      // Put it near the input (after input if possible) to keep it logically grouped
+      try {
+        schoolEl.insertAdjacentElement("afterend", inwrapAnchor);
+      } catch (_) {
+        fieldWrap?.appendChild(inwrapAnchor);
+      }
     }
 
-    // Dropdown-listan ligger i anchor (absolut), så den hamnar visuellt rätt
+    // Create the dropdown list inside the anchor
     const list = document.createElement("div");
     list.className = "school-ac-list";
-    anchor.appendChild(list);
+    inwrapAnchor.appendChild(list);
 
-    // Hint och error ska ligga UTANFÖR input-wrappen så de inte blir “en del av inputfältet”
+    // 2) Hint + Error placement:
+    // - If tweak applied: inside wrapper (works better with the theme grid)
+    // - Else: outside wrapper (robust, doesn't look like part of input)
     const hint = document.createElement("div");
     hint.className = "school-ac-hint";
     hint.textContent = cfg.hintText || DEFAULTS.hintText;
@@ -291,18 +369,53 @@
     const err = document.createElement("div");
     err.className = "school-ac-error";
 
-    // Lägg hint + error efter anchor (då ligger de “under fältet”, inte i fältets styling)
-    anchor.insertAdjacentElement("afterend", hint);
-    hint.insertAdjacentElement("afterend", err);
+    let externalBlockForSpacing = null;
 
-    // Filter dataset for this config
+    if (tweak.applied) {
+      // Place inside wrapper, but in our own block class so we can keep it “non-input”
+      hint.classList.add("school-ac-inwrap");
+      err.classList.add("school-ac-inwrap");
+
+      // Put after the inwrap anchor so it appears below the dropdown area logically
+      inwrapAnchor.insertAdjacentElement("afterend", hint);
+      hint.insertAdjacentElement("afterend", err);
+    } else {
+      // Outside wrapper fallback
+      const outside = document.createElement("div");
+      outside.className = "school-ac-outside";
+
+      // Put right after the wrapper
+      if (fieldWrap && fieldWrap.insertAdjacentElement) {
+        fieldWrap.insertAdjacentElement("afterend", outside);
+      } else {
+        schoolEl.insertAdjacentElement("afterend", outside);
+      }
+
+      outside.appendChild(hint);
+      outside.appendChild(err);
+
+      externalBlockForSpacing = outside;
+    }
+
+    // Optional spacing measurement (default none)
+    const spacingCfg = cfg.spacing || DEFAULTS.spacing;
+    if ((spacingCfg?.mode || "none") === "measure" && externalBlockForSpacing) {
+      setTimeout(() => {
+        measureAndTightenGap_(fieldWrap, externalBlockForSpacing, spacingCfg);
+      }, 0);
+
+      window.addEventListener("resize", () => {
+        externalBlockForSpacing.style.marginTop = "";
+        measureAndTightenGap_(fieldWrap, externalBlockForSpacing, spacingCfg);
+      });
+    }
+
+    // dataset per config
     const schoolsPrepared = applyActivityFilter_(schoolsPreparedAll, cfg.activityFilter);
-
     const fuse = buildFuse_(schoolsPrepared, cfg.threshold);
 
     let selected = null;
     let activeIndex = -1;
-
 
     function showError(msg) {
       err.textContent = msg;
@@ -338,33 +451,32 @@
     }
 
     function render(items) {
-        list.innerHTML = "";
-        activeIndex = -1;
+      list.innerHTML = "";
+      activeIndex = -1;
 
-        if (!items.length) {
-            hideList();
-            return;
-        }
+      if (!items.length) {
+        hideList();
+        return;
+      }
 
-        items.forEach((s) => {
-            const row = document.createElement("div");
-            row.className = "school-ac-item";
-            row.innerHTML =
-            `<strong>${esc(s.name)}</strong>` +
-            (s.city ? ` <span>– ${esc(s.city)}</span>` : "") +
-            (s.isActive ? " • Aktiv" : " • Inte aktiv");
+      items.forEach((s) => {
+        const row = document.createElement("div");
+        row.className = "school-ac-item";
+        row.innerHTML =
+          `<strong>${esc(s.name)}</strong>` +
+          (s.city ? ` <span>– ${esc(s.city)}</span>` : "") +
+          (s.isActive ? " • Aktiv" : " • Inte aktiv");
 
-            row.addEventListener("mousedown", (e) => {
-            e.preventDefault();
-            setSelected(s);
-            });
-
-            list.appendChild(row);
+        row.addEventListener("mousedown", (e) => {
+          e.preventDefault();
+          setSelected(s);
         });
 
-        list.style.display = "block";
-    }
+        list.appendChild(row);
+      });
 
+      list.style.display = "block";
+    }
 
     // Events
     schoolEl.addEventListener("input", () => {
@@ -446,7 +558,7 @@
     return true;
   }
 
-  // --------- Init / re-init (Squarespace AJAX nav) ---------
+  // ---------- init ----------
   let initRunning = false;
 
   function getConfigs_() {
@@ -473,27 +585,32 @@
 
       await ensureFuse_();
 
-      for (const cfg of configs) {
-        const merged = Object.assign({}, DEFAULTS, cfg);
+      for (const rawCfg of configs) {
+        const cfg = {
+          ...DEFAULTS,
+          ...rawCfg,
+          spacing: { ...DEFAULTS.spacing, ...(rawCfg?.spacing || {}) },
+          themeTweaks: { ...DEFAULTS.themeTweaks, ...(rawCfg?.themeTweaks || {}) },
+        };
 
-        if (!merged.schoolsDataUrl) {
+        if (!cfg.schoolsDataUrl) {
           console.group("SchoolFormAutocomplete: config saknar schoolsDataUrl");
-          console.log("Config:", cfg);
+          console.log("Config:", rawCfg);
           console.groupEnd();
           debugDumpForms_();
           continue;
         }
-        if (!merged.selectors || !merged.selectors.schoolInput || !merged.selectors.notFoundCb || !merged.selectors.schoolIdInput) {
+        if (!cfg.selectors || !cfg.selectors.schoolInput || !cfg.selectors.notFoundCb || !cfg.selectors.schoolIdInput) {
           console.group("SchoolFormAutocomplete: config saknar selectors");
-          console.log("Config:", cfg);
+          console.log("Config:", rawCfg);
           console.log("Behövs selectors: schoolInput, notFoundCb, schoolIdInput");
           console.groupEnd();
           debugDumpForms_();
           continue;
         }
 
-        const schoolsPreparedAll = await loadSchoolsPrepared_(merged.schoolsDataUrl);
-        attachFromConfig_(merged, schoolsPreparedAll);
+        const schoolsPreparedAll = await loadSchoolsPrepared_(cfg.schoolsDataUrl);
+        attachFromConfig_(cfg, schoolsPreparedAll);
       }
     } catch (err) {
       console.log("SchoolFormAutocomplete init failed:", err);
@@ -513,6 +630,7 @@
     scheduleInit_();
   }
 
+  // Squarespace dynamic navigation support
   const mo = new MutationObserver(() => scheduleInit_());
   mo.observe(document.documentElement, { childList: true, subtree: true });
 })();
