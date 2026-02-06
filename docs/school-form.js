@@ -83,7 +83,7 @@
         position: absolute;
         z-index: 2147483647;
         left: 0; right: 0;
-        top: 6px;                 /* like v3 */
+        top: 0;
         background: white;
         border: 1px solid rgba(0,0,0,.15);
         border-radius: 8px;
@@ -99,7 +99,7 @@
       .school-ac-item:hover, .school-ac-item.is-active{ background: rgba(0,0,0,.06); }
 
       /* Hint/error blocks */
-      .school-ac-hint{ font-size: 12px; opacity: .75; margin-top: 6px; }
+      .school-ac-hint{ opacity: .75; margin-top: 6px; }
       .school-ac-error{ margin-top: 8px; font-size: 13px; color: #b00020; display: none; }
       .school-ac-error.is-visible{ display: block; }
 
@@ -109,7 +109,7 @@
         background: transparent;
         border: 0;
         padding: 0;
-        margin: 0;
+        margin: 5px;
       }
     `;
     document.head.appendChild(style);
