@@ -302,15 +302,7 @@
 
     let selected = null;
     let activeIndex = -1;
-
-    function positionList_() {
-    //   const rect = schoolEl.getBoundingClientRect();
-    //   const top = rect.bottom + window.scrollY + 6;
-    //   const left = rect.left + window.scrollX;
-    //   list.style.top = `${top}px`;
-    //   list.style.left = `${left}px`;
-    //   list.style.width = `${rect.width}px`;
-    }
+    
 
     function showError(msg) {
       err.textContent = msg;
@@ -373,12 +365,6 @@
         list.style.display = "block";
     }
 
-    // Keep list positioned on scroll/resize while open
-    const repositionIfOpen = () => {
-      if (list.style.display === "block") positionList_();
-    };
-    window.addEventListener("scroll", repositionIfOpen, true);
-    window.addEventListener("resize", repositionIfOpen);
 
     // Events
     schoolEl.addEventListener("input", () => {
