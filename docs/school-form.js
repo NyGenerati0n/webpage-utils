@@ -606,30 +606,34 @@
 
     function validateOrBlock(evt) {
       clearError();
+
       const text = String(schoolEl.value || "").trim();
+      const isRequired = (cfg.required != null) ? !!cfg.required : !!schoolEl.required;
+
+      // Om det inte är required och användaren inte fyllt i något: tillåt
+      if (!isRequired && !text) {
+        idEl.value = "";
+        return true;
+      }
 
       if (cbEl.checked) {
-        // Free text mode must have something
         if (!text) {
           evt.preventDefault(); evt.stopPropagation(); evt.stopImmediatePropagation();
           showError(cfg.errorFreeText || DEFAULTS.errorFreeText);
           return false;
         }
-        // Keep id empty in free-text mode
         idEl.value = "";
-        // Keep sticky so external scripts can't wipe it after you leave the field
-        stickyValue = text;
         return true;
       }
 
-      // Must-choose mode
-      if (!selectedName || !selectedId) {
+      // Must-choose mode: om de skrivit något eller required -> måste selection finnas
+      if (!selectedId || !selectedName) {
         evt.preventDefault(); evt.stopPropagation(); evt.stopImmediatePropagation();
         showError(cfg.errorChoose || DEFAULTS.errorChoose);
         return false;
       }
 
-      // Enforce final values
+      // Säkra slutvärden
       _origSetValue.call(schoolEl, selectedName);
       idEl.value = selectedId;
       lockReadOnly_();
