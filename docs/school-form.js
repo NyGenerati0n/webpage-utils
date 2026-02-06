@@ -337,7 +337,7 @@
 
     const fieldWrap = schoolEl.closest(".field, .form-item, .form-field") || schoolEl.parentElement;
 
-    // Theme tweak result determines hint/error placement policy
+    // Theme tweak result determines hint placement policy
     const tweak = tryApplyFormInputEffectsHack_(fieldWrap, !!cfg.themeTweaks?.tryFormInputEffectsGridHack);
 
     // LIST: always inside wrapper via a zero-height anchor (no layout shift)
@@ -356,19 +356,14 @@
     list.className = "school-ac-list";
     inwrapAnchor.appendChild(list);
 
-    // Hint + Error
+    // Hint (no custom error UI)
     const hint = document.createElement("div");
     hint.className = "school-ac-hint";
     hint.textContent = cfg.hintText || DEFAULTS.hintText;
 
-    const err = document.createElement("div");
-    err.className = "school-ac-error";
-
     if (tweak.applied) {
       hint.classList.add("school-ac-inwrap");
-      err.classList.add("school-ac-inwrap");
       inwrapAnchor.insertAdjacentElement("afterend", hint);
-      hint.insertAdjacentElement("afterend", err);
     } else {
       const outside = document.createElement("div");
       outside.className = "school-ac-outside";
@@ -378,7 +373,6 @@
         schoolEl.insertAdjacentElement("afterend", outside);
       }
       outside.appendChild(hint);
-      outside.appendChild(err);
     }
 
     // Data + fuse
@@ -388,7 +382,7 @@
     // --- State ---
     let selectedName = "";
     let selectedId = "";
-    let stickyValue = "";      // “senaste texten” som vi vill behålla när fältet inte är i fokus
+    let stickyValue = ""; // senaste texten vi vill skydda när fältet inte är i fokus
     let isReadOnlyLocked = false;
     let activeIndex = -1;
 
@@ -445,18 +439,6 @@
       schoolEl.readOnly = false;
     }
 
-    function showError(msg) {
-      err.textContent = msg;
-      err.classList.add("is-visible");
-      schoolEl.setAttribute("aria-invalid", "true");
-    }
-
-    function clearError() {
-      err.textContent = "";
-      err.classList.remove("is-visible");
-      schoolEl.removeAttribute("aria-invalid");
-    }
-
     function hideList() {
       list.style.display = "none";
       list.innerHTML = "";
@@ -470,8 +452,42 @@
       unlockReadOnly_();
     }
 
+    // ---- Native Squarespace-style validation via Constraint Validation ----
+    function updateSchoolValidity_() {
+      const text = String(schoolEl.value || "").trim();
+      const isRequired = (cfg.required != null) ? !!cfg.required : !!schoolEl.required;
+
+      // Om tomt: låt required-regeln (om den finns) hanteras av Squarespace/browsern.
+      if (!text) {
+        schoolEl.setCustomValidity("");
+        // håller id tomt om inget valt
+        if (!selectedId) idEl.value = "";
+        return;
+      }
+
+      // Fritext-läge: om text finns -> OK (required hanteras redan av "tomt"-case)
+      if (cbEl.checked) {
+        schoolEl.setCustomValidity("");
+        idEl.value = ""; // fritext => inget id
+        return;
+      }
+
+      // Välj-läge: om användaren har text men inte valt förslag => custom error
+      if (!selectedId || !selectedName) {
+        schoolEl.setCustomValidity(cfg.errorChoose || DEFAULTS.errorChoose);
+        idEl.value = ""; // för tydlighet
+        return;
+      }
+
+      // Val finns
+      schoolEl.setCustomValidity("");
+      idEl.value = selectedId;
+
+      // Om fältet är required och de har valt, då är allt OK.
+      // (isRequired används indirekt via required-attributet)
+    }
+
     function setSelected_(s) {
-      clearError();
       hideList();
 
       selectedName = s?.name || "";
@@ -483,8 +499,8 @@
       // After selection, keep stickyValue empty (so we don’t “fight” with selection)
       stickyValue = "";
 
-      // Lock UX typing, and guard locks programmatic overwrites when unfocused
       lockReadOnly_();
+      updateSchoolValidity_();
     }
 
     function search_(q) {
@@ -535,8 +551,6 @@
 
     // --- Typing in school field ---
     schoolEl.addEventListener("input", () => {
-      clearError();
-
       // Ensure user can type
       if (isReadOnlyLocked) unlockReadOnly_();
 
@@ -547,6 +561,7 @@
         // Free-text mode: no suggestions, no selection id
         hideList();
         clearSelectionOnly_();
+        updateSchoolValidity_();
         return;
       }
 
@@ -556,6 +571,7 @@
       }
 
       render_(search_(schoolEl.value));
+      updateSchoolValidity_();
     });
 
     schoolEl.addEventListener("keydown", (e) => {
@@ -584,14 +600,14 @@
     });
 
     schoolEl.addEventListener("blur", () => {
-      setTimeout(() => hideList(), 150);
+      setTimeout(() => {
+        hideList();
+        updateSchoolValidity_();
+      }, 150);
     });
 
-    // Checkbox toggling:
-    // - Keep whatever text the user has (no swapping between two values)
-    // - Clear selection id when checkbox state changes
+    // Checkbox toggling (keep typed text, clear selection)
     cbEl.addEventListener("change", () => {
-      clearError();
       hideList();
 
       // Always keep current visible text as sticky
@@ -602,50 +618,30 @@
 
       // Ensure user can type in free-text mode
       if (cbEl.checked) unlockReadOnly_();
+
+      updateSchoolValidity_();
     });
 
-    function validateOrBlock(evt) {
-      clearError();
-
-      const text = String(schoolEl.value || "").trim();
-      const isRequired = (cfg.required != null) ? !!cfg.required : !!schoolEl.required;
-
-      // Om det inte är required och användaren inte fyllt i något: tillåt
-      if (!isRequired && !text) {
-        idEl.value = "";
-        return true;
+    // Ensure validity is up-to-date before Squarespace runs its submit validation
+    form.addEventListener("submit", () => {
+      // Force correct final values if selection exists
+      if (!cbEl.checked && selectedName && selectedId) {
+        _origSetValue.call(schoolEl, selectedName);
+        idEl.value = selectedId;
+        lockReadOnly_();
       }
-
       if (cbEl.checked) {
-        if (!text) {
-          evt.preventDefault(); evt.stopPropagation(); evt.stopImmediatePropagation();
-          showError(cfg.errorFreeText || DEFAULTS.errorFreeText);
-          return false;
-        }
         idEl.value = "";
-        return true;
       }
+      updateSchoolValidity_();
+    }, true);
 
-      // Must-choose mode: om de skrivit något eller required -> måste selection finnas
-      if (!selectedId || !selectedName) {
-        evt.preventDefault(); evt.stopPropagation(); evt.stopImmediatePropagation();
-        showError(cfg.errorChoose || DEFAULTS.errorChoose);
-        return false;
-      }
-
-      // Säkra slutvärden
-      _origSetValue.call(schoolEl, selectedName);
-      idEl.value = selectedId;
-      lockReadOnly_();
-      return true;
-    }
-
-    form.addEventListener("submit", validateOrBlock);
-    const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
-    if (submitBtn) submitBtn.addEventListener("click", validateOrBlock);
+    // Optional: initialize validity once
+    updateSchoolValidity_();
 
     return true;
   }
+
 
 
 
