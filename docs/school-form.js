@@ -340,8 +340,7 @@
     // Theme tweak result determines hint/error placement policy
     const tweak = tryApplyFormInputEffectsHack_(fieldWrap, !!cfg.themeTweaks?.tryFormInputEffectsGridHack);
 
-    // 1) LIST always inside wrapper (if possible)
-    // Create/Reuse in-wrap anchor so dropdown doesn't change layout.
+    // 1) LIST always inside wrapper via a zero-height anchor (no layout shift)
     let inwrapAnchor = fieldWrap?.querySelector(":scope > .school-ac-inwrap-anchor");
     if (!inwrapAnchor) {
       inwrapAnchor = document.createElement("div");
@@ -353,7 +352,6 @@
       }
     }
 
-    // Create dropdown list inside the anchor
     const list = document.createElement("div");
     list.className = "school-ac-list";
     inwrapAnchor.appendChild(list);
@@ -365,8 +363,6 @@
 
     const err = document.createElement("div");
     err.className = "school-ac-error";
-
-    let externalBlockForSpacing = null;
 
     if (tweak.applied) {
       hint.classList.add("school-ac-inwrap");
@@ -383,37 +379,79 @@
       }
       outside.appendChild(hint);
       outside.appendChild(err);
-      externalBlockForSpacing = outside;
-    }
-
-    // Optional spacing measurement (default none)
-    const spacingCfg = cfg.spacing || DEFAULTS.spacing;
-    if ((spacingCfg?.mode || "none") === "measure" && externalBlockForSpacing) {
-      setTimeout(() => {
-        measureAndTightenGap_(fieldWrap, externalBlockForSpacing, spacingCfg);
-      }, 0);
-
-      window.addEventListener("resize", () => {
-        externalBlockForSpacing.style.marginTop = "";
-        measureAndTightenGap_(fieldWrap, externalBlockForSpacing, spacingCfg);
-      });
     }
 
     // dataset per config
     const schoolsPrepared = applyActivityFilter_(schoolsPreparedAll, cfg.activityFilter);
     const fuse = buildFuse_(schoolsPrepared, cfg.threshold);
 
-    // --- Persistent selection state (survives Squarespace re-renders) ---
+    // --- Selection state + guarded lock ---
     let selected = null;
     let selectedName = "";
     let selectedId = "";
     let lastTyped = "";
+    let isLocked = false;
+    let activeIndex = -1;
+
+    // Native value getter/setter (for safe writes even when we override)
+    const _valueDesc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+    const _origGetValue = _valueDesc.get;
+    const _origSetValue = _valueDesc.set;
+
+    function installValueGuard_() {
+      if (schoolEl.dataset.valueGuardInstalled === "1") return;
+
+      Object.defineProperty(schoolEl, "value", {
+        configurable: true,
+        enumerable: true,
+        get() {
+          return _origGetValue.call(this);
+        },
+        set(v) {
+          // If locked + selected exists: clamp to selectedName
+          if (isLocked && selectedName && v !== selectedName) {
+            _origSetValue.call(this, selectedName);
+            return;
+          }
+          _origSetValue.call(this, v);
+        }
+      });
+
+      schoolEl.dataset.valueGuardInstalled = "1";
+    }
+
+    function uninstallValueGuard_() {
+      if (schoolEl.dataset.valueGuardInstalled !== "1") return;
+      delete schoolEl.value; // remove own-property override
+      delete schoolEl.dataset.valueGuardInstalled;
+    }
+
+    function lockField_() {
+      if (!selectedName || !selectedId || cbEl.checked) return;
+      isLocked = true;
+      schoolEl.readOnly = true;
+      installValueGuard_();
+
+      // Force correct values (use native setter to avoid recursion)
+      _origSetValue.call(schoolEl, selectedName);
+      idEl.value = selectedId;
+
+      schoolEl.dataset.selectedSchoolName = selectedName;
+      schoolEl.dataset.selectedSchoolId = selectedId;
+    }
+
+    function unlockField_() {
+      isLocked = false;
+      schoolEl.readOnly = false;
+      uninstallValueGuard_();
+    }
 
     function showError(msg) {
       err.textContent = msg;
       err.classList.add("is-visible");
       schoolEl.setAttribute("aria-invalid", "true");
     }
+
     function clearError() {
       err.textContent = "";
       err.classList.remove("is-visible");
@@ -433,22 +471,27 @@
       idEl.value = "";
       delete schoolEl.dataset.selectedSchoolName;
       delete schoolEl.dataset.selectedSchoolId;
+      unlockField_();
     }
 
     function setSelected(s) {
+      // Make sure guard isn't blocking switching selection
+      unlockField_();
+
       selected = s;
       selectedName = s?.name || "";
       selectedId = s?.id || "";
 
-      schoolEl.value = selectedName;
+      _origSetValue.call(schoolEl, selectedName);
       idEl.value = selectedId;
 
-      // Persist for resilience
       schoolEl.dataset.selectedSchoolName = selectedName;
       schoolEl.dataset.selectedSchoolId = selectedId;
 
       clearError();
       hideList();
+
+      lockField_();
     }
 
     function getStoredSelectedName_() {
@@ -458,32 +501,11 @@
       return selectedId || schoolEl.dataset.selectedSchoolId || "";
     }
 
-    function restoreIfNeeded_(reason) {
-      if (cbEl.checked) return;
-
-      const storedName = getStoredSelectedName_();
-      const storedId = getStoredSelectedId_();
-
-      if (!storedName || !storedId) return;
-
-      // If Squarespace overwrote the visible input value, restore it
-      if (schoolEl.value !== storedName) {
-        schoolEl.value = storedName;
-      }
-
-      // Also ensure hidden ID remains correct
-      if (idEl.value !== storedId) {
-        idEl.value = storedId;
-      }
-    }
-
     function search(q) {
       const qq = String(q || "").trim();
       if (!qq) return [];
       return fuse.search(qq).map((r) => r.item).slice(0, cfg.maxSuggestions || DEFAULTS.maxSuggestions);
     }
-
-    let activeIndex = -1;
 
     function render(items) {
       list.innerHTML = "";
@@ -498,13 +520,13 @@
         const row = document.createElement("div");
         row.className = "school-ac-item";
         row.innerHTML =
-            `<strong>${esc(s.name)}</strong>` +
-            (s.city ? ` <span>– ${esc(s.city)}</span>` : "") +
-            (s.isActive ? " • Aktiv" : " • Inte aktiv");
+          `<strong>${esc(s.name)}</strong>` +
+          (s.city ? ` <span>– ${esc(s.city)}</span>` : "") +
+          (s.isActive ? " • Aktiv" : " • Inte aktiv");
 
         row.addEventListener("mousedown", (e) => {
-            e.preventDefault();
-            setSelected(s);
+          e.preventDefault();
+          setSelected(s);
         });
 
         list.appendChild(row);
@@ -512,6 +534,18 @@
 
       list.style.display = "block";
     }
+
+    // --- UX: unlock when user returns to the school field ---
+    schoolEl.addEventListener("mousedown", () => {
+      if (!isLocked) return;
+      unlockField_();
+    });
+
+    schoolEl.addEventListener("focus", () => {
+      if (!isLocked) return;
+      unlockField_();
+      try { schoolEl.select(); } catch (_) {}
+    });
 
     // --- Event wiring ---
     schoolEl.addEventListener("input", () => {
@@ -523,7 +557,9 @@
         return;
       }
 
-      // If user types anything that deviates from the stored selection, drop the selection
+      // If we were locked (shouldn't accept typing), ensure unlocked
+      if (isLocked) unlockField_();
+
       const storedName = getStoredSelectedName_();
       if (storedName && schoolEl.value !== storedName) {
         lastTyped = schoolEl.value;
@@ -546,9 +582,9 @@
         activeIndex = Math.max(activeIndex - 1, 0);
       } else if (e.key === "Enter") {
         if (activeIndex >= 0) {
-            e.preventDefault();
-            const items = search(schoolEl.value);
-            if (items[activeIndex]) setSelected(items[activeIndex]);
+          e.preventDefault();
+          const items = search(schoolEl.value);
+          if (items[activeIndex]) setSelected(items[activeIndex]);
         }
       } else if (e.key === "Escape") {
         hideList();
@@ -562,40 +598,33 @@
     schoolEl.addEventListener("blur", () => {
       setTimeout(() => {
         hideList();
-        // After Squarespace handlers run, restore selection if it got overwritten
-        restoreIfNeeded_("schoolBlur");
+
+        // If selection exists, enforce + lock again after leaving field
+        const storedName = getStoredSelectedName_();
+        const storedId = getStoredSelectedId_();
+
+        if (!cbEl.checked && storedName && storedId) {
+          selectedName = storedName;
+          selectedId = storedId;
+          lockField_();
+        }
       }, 0);
     });
 
     cbEl.addEventListener("change", () => {
       clearError();
+
       if (cbEl.checked) {
+        // free-text mode
         hideList();
-        clearSelected(); // free-text mode => no ID/selection
-      } else {
-        // back to must-choose mode
         clearSelected();
-        // optional: restore typed text if you want
-        if (lastTyped) schoolEl.value = lastTyped;
+        unlockField_();
+      } else {
+        // must-choose mode again
+        clearSelected();
+        if (lastTyped) _origSetValue.call(schoolEl, lastTyped);
       }
     });
-
-    // Key part: Squarespace may re-apply values when other fields are edited
-    // Restore after those events fire.
-    form.addEventListener("focusin", (e) => {
-      if (e.target !== schoolEl) setTimeout(() => restoreIfNeeded_("focusin-other"), 0);
-    });
-
-    form.addEventListener("change", (e) => {
-      if (e.target !== schoolEl) setTimeout(() => restoreIfNeeded_("change-other"), 0);
-    });
-
-    // Optional extra safety: if Squarespace mutates the input value via JS without events
-    // we can observe attribute changes (rare but happens in some setups).
-    const mo = new MutationObserver(() => setTimeout(() => restoreIfNeeded_("mutation"), 0));
-    try {
-        mo.observe(schoolEl, { attributes: true, attributeFilter: ["value"] });
-    } catch (_) {}
 
     function validateOrBlock(evt) {
       clearError();
@@ -619,9 +648,14 @@
         return false;
       }
 
-      // Ensure fields are correct right before submit
-      schoolEl.value = storedName;
+      // Ensure correct values right before submit (native set to avoid guard recursion issues)
+      selectedName = storedName;
+      selectedId = storedId;
+      _origSetValue.call(schoolEl, storedName);
       idEl.value = storedId;
+
+      // Keep locked for submit
+      lockField_();
 
       return true;
     }
@@ -630,15 +664,13 @@
     const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
     if (submitBtn) {
       submitBtn.addEventListener("click", (e) => {
-      // Restore right before Squarespace reads values
-      setTimeout(() => restoreIfNeeded_("submitClick"), 0);
-        // Also validate
         validateOrBlock(e);
       });
     }
 
     return true;
   }
+
 
 
   // ---------- init ----------
