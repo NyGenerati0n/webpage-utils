@@ -47,7 +47,7 @@
             position: absolute;
             z-index: 2147483647;
             left: 0; right: 0;
-            top: 6px;
+            top: 0px;
             background: white;
             border: 1px solid rgba(0,0,0,.15);
             border-radius: 8px;
@@ -61,7 +61,7 @@
         .school-ac-item { padding: 10px 12px; cursor: pointer; font-size: 14px; }
         .school-ac-item:hover, .school-ac-item.is-active { background: rgba(0,0,0,.06); }
 
-        .school-ac-hint { font-size: 12px; opacity: .75; margin-top: 6px; }
+        .school-ac-hint { font-size: 12px; opacity: .75; margin-top: 0px; }
         .school-ac-error { margin-top: 8px; font-size: 13px; color: #b00020; display: none; }
         .school-ac-error.is-visible { display: block; }
     `;
@@ -302,7 +302,7 @@
 
     let selected = null;
     let activeIndex = -1;
-    
+
 
     function showError(msg) {
       err.textContent = msg;
