@@ -98,12 +98,10 @@
       .school-ac-item{ padding: 10px 12px; cursor: pointer; font-size: 14px; }
       .school-ac-item:hover, .school-ac-item.is-active{ background: rgba(0,0,0,.06); }
 
-      /* Hint/error blocks */
+      /* Hint block */
       .school-ac-hint{ opacity: .75; margin-top: 6px; }
-      .school-ac-error{ margin-top: 8px; font-size: 13px; color: #b00020; display: none; }
-      .school-ac-error.is-visible{ display: block; }
 
-      /* When hint/error placed inside wrapper, keep them behaving like regular blocks */
+      /* When hint placed inside wrapper, keep it behaving like a regular block */
       .school-ac-inwrap{
         grid-column: 1 / -1;
         background: transparent;
@@ -111,9 +109,32 @@
         padding: 0;
         margin: 5px;
       }
+
+      /* --- Hidden ID field wrapper: keep in DOM for Squarespace native validation, but hide the control --- */
+      .school-ac-hidden-id-wrapper{
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .school-ac-hidden-id-wrapper label{
+        position: absolute !important;
+        left: -9999px !important;
+        width: 1px !important;
+        height: 1px !important;
+        overflow: hidden !important;
+        white-space: nowrap !important;
+      }
+      .school-ac-hidden-id-input{
+        position: absolute !important;
+        left: -9999px !important;
+        width: 1px !important;
+        height: 1px !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+      }
     `;
     document.head.appendChild(style);
   }
+
 
   // ---------- Fuse loader ----------
   function ensureFuse_() {
@@ -331,32 +352,46 @@
 
     onceInjectStyles_();
 
-    // Hide ID field visually (keep in submission)
-    const idWrapper = idEl.closest(".field, .form-item, .form-field") || idEl.parentElement;
-    if (idWrapper) idWrapper.style.display = "none";
-
     const fieldWrap = schoolEl.closest(".field, .form-item, .form-field") || schoolEl.parentElement;
 
     // Theme tweak result determines hint placement policy
     const tweak = tryApplyFormInputEffectsHack_(fieldWrap, !!cfg.themeTweaks?.tryFormInputEffectsGridHack);
 
-    // LIST: always inside wrapper via a zero-height anchor (no layout shift)
+    // --- ID wrapper: must NOT be display:none (Squarespace needs it to show native errors) ---
+    const idWrapper = idEl.closest(".field, .form-item, .form-field") || idEl.parentElement;
+
+    if (idWrapper) {
+      idWrapper.classList.add("school-ac-hidden-id-wrapper");
+      idEl.classList.add("school-ac-hidden-id-input");
+      idEl.tabIndex = -1;
+
+      // Move ID wrapper right under School input so its native error appears "under School"
+      try { schoolEl.insertAdjacentElement("afterend", idWrapper); } catch (_) {}
+    }
+
+    // LIST: inside wrapper via zero-height anchor (popup-safe)
     let inwrapAnchor = fieldWrap?.querySelector(":scope > .school-ac-inwrap-anchor");
     if (!inwrapAnchor) {
       inwrapAnchor = document.createElement("div");
       inwrapAnchor.className = "school-ac-inwrap-anchor";
       try {
-        schoolEl.insertAdjacentElement("afterend", inwrapAnchor);
+        // Place anchor after idWrapper if we moved it, else after input
+        (idWrapper || schoolEl).insertAdjacentElement("afterend", inwrapAnchor);
       } catch (_) {
         fieldWrap?.appendChild(inwrapAnchor);
       }
+    } else {
+      // Ensure anchor sits after idWrapper (so ID-error stays right below input)
+      try {
+        if (idWrapper) idWrapper.insertAdjacentElement("afterend", inwrapAnchor);
+      } catch (_) {}
     }
 
     const list = document.createElement("div");
     list.className = "school-ac-list";
     inwrapAnchor.appendChild(list);
 
-    // Hint (no custom error UI)
+    // Hint
     const hint = document.createElement("div");
     hint.className = "school-ac-hint";
     hint.textContent = cfg.hintText || DEFAULTS.hintText;
@@ -394,13 +429,8 @@
     // Decide what value we should protect when field is NOT focused
     function guardValue_() {
       if (document.activeElement === schoolEl) return null; // allow edits while focused
-
-      // If checkbox NOT checked and we have a selected school -> lock to selectedName
       if (!cbEl.checked && selectedName && selectedId) return selectedName;
-
-      // Otherwise, if we have sticky text -> keep that stable
       if (stickyValue) return stickyValue;
-
       return null;
     }
 
@@ -411,9 +441,7 @@
       Object.defineProperty(schoolEl, "value", {
         configurable: true,
         enumerable: true,
-        get() {
-          return _origGetValue.call(this);
-        },
+        get() { return _origGetValue.call(this); },
         set(v) {
           const gv = guardValue_();
           if (gv != null && v !== gv) {
@@ -426,7 +454,6 @@
 
       schoolEl.dataset.valueGuardInstalled = "1";
     }
-
     installValueGuard_();
 
     function lockReadOnly_() {
@@ -450,41 +477,58 @@
       selectedId = "";
       idEl.value = "";
       unlockReadOnly_();
+      notifyIdChanged_();
     }
 
-    // ---- Native Squarespace-style validation via Constraint Validation ----
-    function updateSchoolValidity_() {
+    function notifyIdChanged_() {
+      // Helps Squarespace clear/update errors when we set idEl programmatically
+      try { idEl.dispatchEvent(new Event("input", { bubbles: true })); } catch (_) {}
+      try { idEl.dispatchEvent(new Event("change", { bubbles: true })); } catch (_) {}
+    }
+
+    // --- Make ID required ONLY when: user has typed something AND not in free-text mode ---
+    function syncIdConstraint_() {
       const text = String(schoolEl.value || "").trim();
-      const isRequired = (cfg.required != null) ? !!cfg.required : !!schoolEl.required;
 
-      // Om tomt: låt required-regeln (om den finns) hanteras av Squarespace/browsern.
-      if (!text) {
-        schoolEl.setCustomValidity("");
-        // håller id tomt om inget valt
-        if (!selectedId) idEl.value = "";
-        return;
-      }
+      // Important: do NOT require ID when text is empty.
+      // That avoids double errors and lets School's own Required handle "empty".
+      const needId = (!cbEl.checked && !!text);
 
-      // Fritext-läge: om text finns -> OK (required hanteras redan av "tomt"-case)
-      if (cbEl.checked) {
-        schoolEl.setCustomValidity("");
-        idEl.value = ""; // fritext => inget id
-        return;
-      }
+      idEl.required = needId;
+      idEl.value = needId ? (selectedId || "") : "";
 
-      // Välj-läge: om användaren har text men inte valt förslag => custom error
-      if (!selectedId || !selectedName) {
-        schoolEl.setCustomValidity(cfg.errorChoose || DEFAULTS.errorChoose);
-        idEl.value = ""; // för tydlighet
-        return;
-      }
+      notifyIdChanged_();
+    }
 
-      // Val finns
-      schoolEl.setCustomValidity("");
-      idEl.value = selectedId;
+    // --- Rewrite Squarespace's ID-required error text to a descriptive message ---
+    const ERROR_SEL = "[role='alert'], .form-field-error, .field-error, .sqs-field-error, .form-error, .error";
+    const CUSTOM_CHOOSE_MSG = cfg.errorChoose || DEFAULTS.errorChoose;
 
-      // Om fältet är required och de har valt, då är allt OK.
-      // (isRequired används indirekt via required-attributet)
+    function rewriteIdErrorText_() {
+      if (!idWrapper) return;
+
+      const text = String(schoolEl.value || "").trim();
+      const shouldHaveId = (!cbEl.checked && !!text);
+      const idMissing = shouldHaveId && !String(idEl.value || "").trim();
+
+      if (!idMissing) return;
+
+      const errEl = idWrapper.querySelector(ERROR_SEL);
+      if (!errEl) return;
+
+      // Replace generic "required" text
+      errEl.textContent = CUSTOM_CHOOSE_MSG;
+    }
+
+    // Observe ID wrapper so we can rewrite once Squarespace injects the error element
+    if (idWrapper) {
+      const idErrObs = new MutationObserver(() => {
+        // Let Squarespace finish DOM updates first
+        setTimeout(rewriteIdErrorText_, 0);
+      });
+      try {
+        idErrObs.observe(idWrapper, { childList: true, subtree: true, characterData: true });
+      } catch (_) {}
     }
 
     function setSelected_(s) {
@@ -494,13 +538,12 @@
       selectedId = s?.id || "";
 
       _origSetValue.call(schoolEl, selectedName);
-      idEl.value = selectedId;
-
-      // After selection, keep stickyValue empty (so we don’t “fight” with selection)
       stickyValue = "";
 
       lockReadOnly_();
-      updateSchoolValidity_();
+      syncIdConstraint_();
+      // If error already exists, rewrite immediately
+      rewriteIdErrorText_();
     }
 
     function search_(q) {
@@ -537,7 +580,7 @@
       list.style.display = "block";
     }
 
-    // --- Unlock readOnly when user returns to field (click/tab) ---
+    // Unlock readOnly when user returns to field (click/tab)
     schoolEl.addEventListener("mousedown", () => {
       if (isReadOnlyLocked) unlockReadOnly_();
     });
@@ -549,29 +592,25 @@
       }
     });
 
-    // --- Typing in school field ---
+    // Typing in school field
     schoolEl.addEventListener("input", () => {
-      // Ensure user can type
       if (isReadOnlyLocked) unlockReadOnly_();
 
-      // Update sticky text (so Squarespace can't overwrite it when you leave the field)
       stickyValue = schoolEl.value || "";
 
       if (cbEl.checked) {
-        // Free-text mode: no suggestions, no selection id
         hideList();
         clearSelectionOnly_();
-        updateSchoolValidity_();
+        syncIdConstraint_();
         return;
       }
 
-      // Must-choose mode: if user edits away from selectedName => clear selection
       if (selectedName && schoolEl.value !== selectedName) {
         clearSelectionOnly_();
       }
 
       render_(search_(schoolEl.value));
-      updateSchoolValidity_();
+      syncIdConstraint_();
     });
 
     schoolEl.addEventListener("keydown", (e) => {
@@ -602,7 +641,8 @@
     schoolEl.addEventListener("blur", () => {
       setTimeout(() => {
         hideList();
-        updateSchoolValidity_();
+        syncIdConstraint_();
+        rewriteIdErrorText_();
       }, 150);
     });
 
@@ -610,37 +650,34 @@
     cbEl.addEventListener("change", () => {
       hideList();
 
-      // Always keep current visible text as sticky
       stickyValue = schoolEl.value || "";
-
-      // Clear selection so we don't flip back/forth
       clearSelectionOnly_();
 
-      // Ensure user can type in free-text mode
       if (cbEl.checked) unlockReadOnly_();
 
-      updateSchoolValidity_();
+      syncIdConstraint_();
+      rewriteIdErrorText_();
     });
 
-    // Ensure validity is up-to-date before Squarespace runs its submit validation
+    // Before submit: ensure constraints are synced, then rewrite error after Squarespace injects it
     form.addEventListener("submit", () => {
-      // Force correct final values if selection exists
+      // If selection exists, enforce final visible value
       if (!cbEl.checked && selectedName && selectedId) {
         _origSetValue.call(schoolEl, selectedName);
-        idEl.value = selectedId;
         lockReadOnly_();
       }
-      if (cbEl.checked) {
-        idEl.value = "";
-      }
-      updateSchoolValidity_();
+      syncIdConstraint_();
+
+      // After Squarespace has a chance to render errors, rewrite ID error text
+      setTimeout(rewriteIdErrorText_, 0);
     }, true);
 
-    // Optional: initialize validity once
-    updateSchoolValidity_();
+    // Init
+    syncIdConstraint_();
 
     return true;
   }
+
 
 
 
