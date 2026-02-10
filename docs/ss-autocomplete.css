@@ -1,0 +1,17 @@
+.ssac-panel {
+  position: absolute;
+  z-index: 9999;
+  left: 0;
+  right: 0;
+  margin-top: 6px;
+  border: 1px solid rgba(0,0,0,.15);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(0,0,0,.12);
+  max-height: 280px;
+  overflow: auto;
+}
+.ssac-item { padding: 10px 12px; cursor: pointer; line-height: 1.2; }
+.ssac-item[aria-selected="true"], .ssac-item:hover { background: rgba(0,0,0,.06); }
+.ssac-muted { opacity: .7; font-size: .95em; }
+.ssac-error { margin: 6px 0 0; }
