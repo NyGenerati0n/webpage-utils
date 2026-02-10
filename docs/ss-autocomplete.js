@@ -545,7 +545,16 @@
         }
       }
     });
-    obs.observe(global.document.body, cfg.observer);
+  
+    const rootNode = global.document.body || global.document.documentElement;
+    if (!rootNode) {
+      global.document.addEventListener("DOMContentLoaded", () => {
+        const rn = global.document.body || global.document.documentElement;
+        if (rn) obs.observe(rn, cfg.observer);
+      }, { once: true });
+    } else {
+      obs.observe(rootNode, cfg.observer);
+    }
 
     log(cfg, "Initialized with fields:", cfg.fields.map((x) => x._key));
     return { destroy: () => obs.disconnect() };
