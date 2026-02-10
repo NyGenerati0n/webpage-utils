@@ -198,46 +198,67 @@
   async function loadDataOnce(field, rootCfg) {
     if (field._dataLoaded) return;
 
-    // Support: static data array OR fetch url
     let raw = null;
 
     if (Array.isArray(field.data)) {
-      raw = field.data;
+        raw = field.data;
     } else if (field.dataUrl) {
-      const fetchOpts = Object.assign({}, rootCfg.fetch, field.fetch || {});
-      const res = await fetch(field.dataUrl, fetchOpts);
-      if (!res.ok) throw new Error(`Fetch failed for ${field.dataUrl}`);
-      raw = await res.json();
+        const fetchOpts = Object.assign({}, rootCfg.fetch, field.fetch || {});
+        const res = await fetch(field.dataUrl, fetchOpts);
+        if (!res.ok) throw new Error(`Fetch failed for ${field.dataUrl}`);
+        raw = await res.json();
     } else {
-      raw = [];
+        raw = [];
     }
 
-    // Normalize/mapping
-    const mapFn = typeof field.mapItem === "function"
-      ? field.mapItem
-      : (x) => ({
-          id: String(x.id ?? ""),
-          label: String(x.label ?? ""),
-          _raw: x,
-        });
+    // 1) plocka ut listan från svaret via listPath
+    const list = extractList(raw, field.listPath);
 
-    const items = Array.isArray(raw) ? raw.map(mapFn) : [];
-    field._items = items.filter((x) => x && String(x.label || "").trim().length > 0);
+    // 2) mappa items -> standardformat
+    const mapFn = typeof field.mapItem === "function"
+        ? field.mapItem
+        : (x) => ({ id: String(x.id ?? ""), label: String(x.label ?? ""), _raw: x });
+
+    // 3) optional filter
+    const filterFn = typeof field.filterItem === "function" ? field.filterItem : null;
+
+    const items = Array.isArray(list) ? list.map(mapFn) : [];
+    field._items = items
+        .filter((x) => x && String(x.label || "").trim().length > 0)
+        .filter((x) => (filterFn ? filterFn(x) : true));
+
     field._dataLoaded = true;
 
     // Fuse optional
     if (typeof global.Fuse !== "undefined") {
-      const fuseOpts = Object.assign(
+        const fuseOpts = Object.assign(
         {},
         rootCfg.fuseDefaults,
         field.fuse || {},
         { keys: field.keys || (field.fuse && field.fuse.keys) || ["label"] }
-      );
-      field._fuse = new global.Fuse(field._items, fuseOpts);
+        );
+        field._fuse = new global.Fuse(field._items, fuseOpts);
     } else {
-      field._fuse = null;
+        field._fuse = null;
     }
-  }
+    }
+
+    // Hjälpfunktion: path -> array
+    function extractList(raw, listPath) {
+    // Om ingen listPath: om raw redan är array, använd den; annars tomt.
+    if (!listPath) return Array.isArray(raw) ? raw : [];
+
+    // Stöd för t.ex. "schools" eller "data.schools"
+    const parts = String(listPath).split(".").map((p) => p.trim()).filter(Boolean);
+
+    let cur = raw;
+    for (const p of parts) {
+        if (cur && typeof cur === "object" && p in cur) cur = cur[p];
+        else return [];
+    }
+    return Array.isArray(cur) ? cur : [];
+    }
+
 
   function search(field, query, maxResults) {
     const q = String(query || "").trim();
