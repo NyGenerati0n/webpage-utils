@@ -142,6 +142,28 @@
     SSAC_OUTSIDE_HANDLER = null;
   }
 
+  function enforceCarrierHidden(carrier) {
+    if (!carrier) return;
+
+    carrier.classList.add("ssac-carrier-hidden");
+
+    // Sätt styles med !important så Squarespace inte “reset:ar fram” inputen
+    const s = carrier.style;
+    s.setProperty("position", "absolute", "important");
+    s.setProperty("opacity", "0", "important");
+    s.setProperty("pointer-events", "none", "important");
+    s.setProperty("height", "0", "important");
+    s.setProperty("margin", "0", "important");
+    s.setProperty("padding", "0", "important");
+    s.setProperty("border", "0", "important");
+
+    // Extra säkerhet om temat sätter width/visibility
+    s.setProperty("width", "1px", "important");
+    s.setProperty("max-height", "0", "important");
+    s.setProperty("overflow", "hidden", "important");
+  }
+
+
 
 
   // ---------- UI ----------
@@ -320,7 +342,8 @@
 
     // Hide carrier but keep in DOM for submit
     // (Adjust if your theme layout breaks)
-    carrier.classList.add("ssac-carrier-hidden")
+    enforceCarrierHidden(carrier);
+
 
     // Per-field state
     const state = {
@@ -478,10 +501,25 @@
         const res = commitToCarrierForSubmit();
 
         if (!res.ok) {
-          // Låt Squarespace visa sitt eget standardfel (required).
-          // Vi gör bara så att användaren hamnar i rätt fält.
+          // Squarespace kan re-rendera fältet efter submit → re-hide carrier
+          setTimeout(() => enforceCarrierHidden(carrier), 0);
+          requestAnimationFrame(() => enforceCarrierHidden(carrier));
+
           global.setTimeout(() => uiInput.focus(), 0);
-          return; // ingen preventDefault
+          return;
+        }
+      },
+      true
+    );
+
+
+    form.addEventListener(
+      "invalid",
+      (ev) => {
+        if (ev.target === carrier) {
+          // Nästa tick + nästa frame brukar vinna över deras DOM-justeringar
+          setTimeout(() => enforceCarrierHidden(carrier), 0);
+          requestAnimationFrame(() => enforceCarrierHidden(carrier));
         }
       },
       true
