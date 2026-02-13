@@ -133,12 +133,7 @@
   function buildPanelAnchor() {
     const anchor = document.createElement("div");
     anchor.className = "ssac-anchor";
-    // 0-höjd så den inte trycker content
-    anchor.style.position = "relative";
-    anchor.style.height = "0";
-    anchor.style.margin = "0";
-    anchor.style.padding = "0";
-    anchor.style.border = "0";
+    
     return anchor;
   }
 
@@ -149,13 +144,7 @@
 
     // Lägg ankaret direkt efter uiInput (men före carrier), så det hamnar under input i flödet.
     uiInput.insertAdjacentElement("afterend", anchor);
-
-    // Panelen blir absolut-positionerad relativt ankaret (som ligger precis under inputen)
-    panel.style.position = "absolute";
-    panel.style.top = "6px";     // lite luft under inputen
-    panel.style.left = "0";
-    panel.style.width = "100%";
-    panel.style.zIndex = "9999";
+    panel.classList.add("ssac-panel--anchored")
 
     return anchor;
   }
@@ -298,13 +287,7 @@
 
     // Hide carrier but keep in DOM for submit
     // (Adjust if your theme layout breaks)
-    carrier.style.position = "absolute";
-    carrier.style.opacity = "0";
-    carrier.style.pointerEvents = "none";
-    carrier.style.height = "0";
-    carrier.style.margin = "0";
-    carrier.style.padding = "0";
-    carrier.style.border = "0";
+    carrier.classList.add("ssac-carrier-hidden")
 
     // Per-field state
     const state = {
