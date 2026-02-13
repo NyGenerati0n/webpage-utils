@@ -305,9 +305,6 @@
         uiInput.disabled = true;
         uiInput.placeholder = fieldCfg.loadErrorPlaceholder || "Kunde inte ladda listan";
         if (rootCfg.debug) console.warn(e);
-      })
-      .finally(() => {
-        // no-op
       });
 
     function openPanel() {
@@ -349,7 +346,6 @@
 
     function commitToCarrierForSubmit() {
       // Rules:
-      // - Must explicitly select if there's any text (requireExplicitSelection = true)
       // - If empty:
       //     - if isRequired false -> sentinel
       //     - if isRequired true  -> invalid (leave blank)
