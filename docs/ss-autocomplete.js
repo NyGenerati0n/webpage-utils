@@ -140,39 +140,93 @@
 
   // ---------- Error rendering ----------
   function findSquarespaceErrorEl(fieldWrapper) {
-    // 1) ARIA-first (vanligt i moderna themes)
+    // Hjälpare: element som vi ALDRIG vill skriva över
+    function isUnsafe(el) {
+      if (!el) return true;
+      const tag = el.tagName ? el.tagName.toUpperCase() : "";
+      if (tag === "LABEL") return true;
+      // Skriv aldrig över hela wrappern
+      if (el === fieldWrapper) return true;
+      // Skriv inte över något som innehåller inputs/textarea/select (dvs layout-wrappers)
+      if (el.querySelector && el.querySelector("input, textarea, select, button")) return true;
+      return false;
+    }
+
+    // 1) ARIA: mest sannolikt ett riktigt error-element
     const aria = fieldWrapper.querySelector(
       '[role="alert"], [aria-live="polite"], [aria-live="assertive"]'
     );
-    if (aria) return aria;
+    if (aria && !isUnsafe(aria)) return aria;
 
-    // 2) Klass-heuristik ("error")
-    const byClass = fieldWrapper.querySelector(
-      '.error, .field-error, .form-error, [class*="error"], [class*="Error"]'
-    );
-    if (byClass && (byClass.textContent || "").trim()) return byClass;
+    // 2) Klassbaserat: ta bara "små text-noder", inte wrappers
+    const classCandidates = Array.from(
+      fieldWrapper.querySelectorAll(
+        // ta vanliga fel-klasser men undvik att fånga hela wrapperstrukturer
+        ".error, .field-error, .form-error, [class*='error'], [class*='Error']"
+      )
+    ).filter((el) => {
+      if (isUnsafe(el)) return false;
+      const t = (el.textContent || "").trim();
+      if (!t) return false;
+      // Typiska fel är ganska korta
+      if (t.length > 200) return false;
+      return true;
+    });
 
-    // 3) Text-heuristik som fallback
-    const candidates = Array.from(fieldWrapper.querySelectorAll("p, div, span, small"))
-      .filter(el => {
+    if (classCandidates.length) return classCandidates[0];
+
+    // 3) Text-heuristik fallback: men ALDRIG label, och ALDRIG wrappers med inputs
+    const textCandidates = Array.from(fieldWrapper.querySelectorAll("p, div, span, small"))
+      .filter((el) => {
+        if (isUnsafe(el)) return false;
         const t = (el.textContent || "").trim();
         if (!t) return false;
+
         const tt = t.toLowerCase();
-        return tt.includes("required") || tt.includes("obligator") || tt.includes("krävs");
+        const looksLikeError =
+          tt.includes("required") ||
+          tt.includes("obligator") ||
+          tt.includes("krävs") ||
+          tt.includes("måste");
+
+        if (!looksLikeError) return false;
+
+        // Om texten ser ut som en vanlig label (kort, inga typiska felord) skippar vi ändå
+        if (t.length > 200) return false;
+
+        return true;
       });
 
-    return candidates[0] || null;
+    return textCandidates[0] || null;
   }
 
   function overrideSquarespaceErrorText(fieldWrapper, newText) {
-    // Vänta 2 frames så Squarespace hinner rendera fel-elementet
-    global.requestAnimationFrame(() => {
-      global.requestAnimationFrame(() => {
-        const el = findSquarespaceErrorEl(fieldWrapper);
-        if (el) el.textContent = newText;
-      });
-    });
+    // Vi vill INTE skriva över något om inte ett säkert error-element finns.
+    // Därför retry:ar vi en kort stund tills Squarespace har renderat felet.
+
+    const MAX_TRIES = 20;      // ~20 frames / checks
+    const DELAY_MS = 25;       // tät retry, men kort period (20*25ms=500ms)
+
+    let tries = 0;
+
+    function attempt() {
+      tries++;
+      const el = findSquarespaceErrorEl(fieldWrapper);
+
+      if (el) {
+        el.textContent = newText;
+        return;
+      }
+
+      if (tries < MAX_TRIES) {
+        setTimeout(attempt, DELAY_MS);
+      }
+    }
+
+    // Vänta 2 frames så Squarespace hinner köra sin submit/validation först
+    requestAnimationFrame(() => requestAnimationFrame(attempt));
   }
+
 
   function clearSquarespaceInvalidState(wrapper, carrier) {
     // Vi rör inte Squarespace error-element direkt (de kan re-rendera),
