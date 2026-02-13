@@ -164,6 +164,76 @@
   }
 
 
+  function bindConditionControls(form, fieldCfg, applyFn) {
+    // fieldCfg.conditionControls:
+    // {
+    //   selectorMap: { missingSchool: 'input[name="..."]', region: 'select[name="..."]' }
+    //   or byLabel:  { missingSchool: 'Skolan finns inte i listan' }  // checkbox via label-text
+    //   events: ["change"] // default
+    // }
+    const cc = fieldCfg && fieldCfg.conditionControls;
+    if (!cc || typeof applyFn !== "function") return { controls: {}, unbind: () => {} };
+
+    const controls = {};
+
+    // 1) selectors
+    if (cc.selectorMap && typeof cc.selectorMap === "object") {
+      for (const key of Object.keys(cc.selectorMap)) {
+        const sel = cc.selectorMap[key];
+        if (!sel) continue;
+        const el = form.querySelector(sel);
+        if (el) controls[key] = el;
+      }
+    }
+
+    // 2) byLabel (främst checkbox)
+    if (cc.byLabel && typeof cc.byLabel === "object") {
+      for (const key of Object.keys(cc.byLabel)) {
+        const labelText = cc.byLabel[key];
+        if (!labelText) continue;
+        const lab = findLabelInForm(form, labelText);
+        if (!lab) continue;
+        const wrap = findFieldWrapperFromLabel(lab, form);
+        if (!wrap) continue;
+
+        // checkbox/radio inom wrappern
+        const el = wrap.querySelector('input[type="checkbox"], input[type="radio"], select, input, textarea');
+        if (el) controls[key] = el;
+      }
+    }
+
+    // Events (default: change)
+    const events = Array.isArray(cc.events) && cc.events.length ? cc.events : ["change"];
+
+    function handler(e) {
+      // Guard: kör bara om event-target matchar något av våra controls
+      const t = e && e.target;
+      if (!t) return;
+
+      for (const k of Object.keys(controls)) {
+        if (controls[k] === t) {
+          applyFn(controls);
+          return;
+        }
+      }
+    }
+
+    // Bind
+    for (const ev of events) form.addEventListener(ev, handler, true);
+
+    // Initial apply
+    applyFn(controls);
+
+    return {
+      controls,
+      unbind: () => {
+        for (const ev of events) form.removeEventListener(ev, handler, true);
+      },
+    };
+  }
+
+
+
 
 
   // ---------- UI ----------
@@ -410,6 +480,14 @@
 
       const uiHasText = String(uiInput.value || "").trim().length > 0;
 
+      if (state.freeTextMode) {
+        const v = String(uiInput.value || "").trim();
+        setNativeValue(carrier, v);
+        dispatchInputEvents(carrier);
+        return { ok: true, freeText: true };
+      }
+
+
       if (state.selectedItem) {
         const submitValue =
           typeof fieldCfg.getSubmitValue === "function"
@@ -438,6 +516,42 @@
       dispatchInputEvents(carrier);
       return { ok: false, reason: "typed_no_selection" };
     }
+
+
+    // ---- Conditions / toggles (optional) ----
+    function setEnabled(enabled) {
+      state.disabled = !enabled;
+      uiInput.disabled = !enabled;
+      if (!enabled) closePanel();
+    }
+
+    function setFreeTextMode(on) {
+      state.freeTextMode = !!on;
+      if (state.freeTextMode) closePanel();
+    }
+
+    // default
+    state.freeTextMode = false;
+
+    // Bind condition controls only if configured
+    const condBinding = bindConditionControls(form, fieldCfg, (controls) => {
+      // Om du vill ge användaren full frihet, kan conditions vara en funktion:
+      // fieldCfg.conditions({ controls, form, wrapper, uiInput, carrier, state })
+      if (typeof fieldCfg.conditions === "function") {
+        const res = fieldCfg.conditions({ controls, form, wrapper, uiInput, carrier, state }) || {};
+        if (typeof res.enabled === "boolean") setEnabled(res.enabled);
+        if (typeof res.freeTextMode === "boolean") setFreeTextMode(res.freeTextMode);
+
+        if (res.clearSelection) {
+          state.selectedItem = null;
+          uiInput.value = "";
+        }
+        return;
+      }
+
+      // Om ingen conditions-funktion finns: gör inget (men du kan fortfarande använda helpern senare)
+    });
+
 
     // UI events
     uiInput.addEventListener("input", () => {
