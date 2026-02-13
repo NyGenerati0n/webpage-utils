@@ -26,3 +26,9 @@
   max-height: 280px;
   overflow: auto;
 }
+
+.ssac-hint{
+  margin: 6px 0 0;
+  opacity: .85;
+  font-size: .95em;
+}

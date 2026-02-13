@@ -235,6 +235,56 @@
     delete wrapper.dataset.ssacInvalid;
   }
 
+  function ensureHintEl(wrapper, uiInput) {
+    // En hint som ser ut som description/help text.
+    // Vi placerar den efter ssac-anchor om den finns (då hamnar den snyggt under dropdownen),
+    // annars direkt efter uiInput.
+    let hint = wrapper.querySelector(".ssac-hint");
+    if (!hint) {
+      hint = document.createElement("p");
+      hint.className = "ssac-hint";
+      hint.style.display = "none";
+      hint.setAttribute("aria-live", "polite");
+
+      // Om din template har en description <p> efter label-wrapper kan du matcha den stilen via CSS.
+      // Vi placerar: efter anchor om den finns, annars efter uiInput.
+      const maybeAnchor =
+        uiInput.nextElementSibling &&
+        uiInput.nextElementSibling.classList &&
+        uiInput.nextElementSibling.classList.contains("ssac-anchor")
+          ? uiInput.nextElementSibling
+          : null;
+
+      if (maybeAnchor && maybeAnchor.parentElement) {
+        maybeAnchor.insertAdjacentElement("afterend", hint);
+      } else {
+        uiInput.insertAdjacentElement("afterend", hint);
+      }
+    }
+    return hint;
+  }
+
+  function showHint(wrapper, uiInput, msg) {
+    const hint = ensureHintEl(wrapper, uiInput);
+    hint.textContent = msg || "";
+    hint.style.display = msg ? "" : "none";
+  }
+
+  function clearHint(wrapper) {
+    const hint = wrapper.querySelector(".ssac-hint");
+    if (hint) {
+      hint.textContent = "";
+      hint.style.display = "none";
+    }
+  }
+
+  function setUiInvalid(uiInput, isInvalid) {
+    if (!uiInput) return;
+    if (isInvalid) uiInput.setAttribute("aria-invalid", "true");
+    else uiInput.removeAttribute("aria-invalid");
+  }
+
+
 
   // ---------- UI ----------
   function buildUIInput(carrier, placeholder) {
@@ -483,6 +533,8 @@
       state.selectedItem = item;
       uiInput.value = item.label;
       clearSquarespaceInvalidState(wrapper, carrier);
+      clearHint(wrapper);
+      setUiInvalid(uiInput, false);
       closePanel();
       // Note: do NOT write to carrier here (avoid “state fights”); do it just-in-time on submit.
     }
@@ -531,6 +583,23 @@
       clearSelectionOnType();
       updateResults();
       openPanel();
+
+      const hasText = String(uiInput.value || "").trim().length > 0;
+
+      // Visa hint direkt när användaren skriver men ännu inte valt från listan
+      if (hasText) {
+        showHint(wrapper, uiInput, fieldCfg.errorText || "Välj ett alternativ från listan.");
+        setUiInvalid(uiInput, true);
+      } else {
+        // Tomt: om fältet är optional, ingen hint
+        if (fieldCfg.isRequired) {
+          showHint(wrapper, uiInput, fieldCfg.requiredErrorText || "Det här fältet är obligatoriskt.");
+          setUiInvalid(uiInput, true);
+        } else {
+          clearHint(wrapper);
+          setUiInvalid(uiInput, false);
+        }
+      }
     });
 
     uiInput.addEventListener("focus", () => {
@@ -597,28 +666,28 @@
         const res = commitToCarrierForSubmit();
 
         if (!res.ok) {
-          // Viktigt: LÅT Squarespace göra sin egen blocking + error render
-          // genom att carrier är tomt (commitToCarrierForSubmit sätter den till "")
+          // Vi låter Squarespace stoppa submit via required (carrier är "")
+          // och vi visar vår hint istället för att försöka skriva över Squarespace error-noder.
           const msg =
             res.reason === "typed_no_selection"
               ? (fieldCfg.errorText || "Välj ett alternativ från listan.")
               : (fieldCfg.requiredErrorText || "Det här fältet är obligatoriskt.");
 
-          // När Squarespace har skapat sin error-node: skriv över texten
-          overrideSquarespaceErrorText(wrapper, msg);
+          showHint(wrapper, uiInput, msg);
+          setUiInvalid(uiInput, true);
 
-          // Fokusera din UI-input
           global.setTimeout(() => uiInput.focus(), 0);
-
-          // Inget preventDefault här – Squarespace required stoppar ändå submit.
-          return;
+          return; // ingen preventDefault här
         }
 
-        // OK: rensa ev vår invalid mark
+        // OK: rensa vår hint/invalid
         clearSquarespaceInvalidState(wrapper, carrier);
+        clearHint(wrapper);
+        setUiInvalid(uiInput, false);
       },
       true
     );
+
 
 
     wrapper.dataset[`ssacEnhanced_${fieldCfg._key}`] = "1";
