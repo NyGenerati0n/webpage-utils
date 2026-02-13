@@ -115,6 +115,53 @@
     return candidates[0] || null;
   }
 
+  function findFieldBlockFromLabel(labelEl, form) {
+    // Försök hitta ett “fältblock” som omsluter label + dess kontroll.
+    // Vi tar en defensiv approach: gå upp några nivåer och välj första som innehåller label
+    // och innehåller någon form av form-control (input/select/textarea).
+    let el = labelEl;
+    for (let i = 0; i < 14; i++) {
+      if (!el || el === form) break;
+      if (el.querySelector && el.contains(labelEl)) {
+        const hasControl = el.querySelector("input, select, textarea");
+        if (hasControl) return el;
+      }
+      el = el.parentElement;
+    }
+    return null;
+  }
+
+  function findControlByLabel(form, labelText) {
+    const labelEl = findLabelInForm(form, labelText);
+    if (!labelEl) return null;
+
+    // 1) label[for] -> element id (mest korrekt när det finns)
+    const forId = labelEl.getAttribute && labelEl.getAttribute("for");
+    if (forId) {
+      const byId = form.querySelector("#" + CSS.escape(forId)) || global.document.getElementById(forId);
+      if (byId) return byId;
+    }
+
+    // 2) input inuti label (vanligt i checkbox/radio)
+    const inside = labelEl.querySelector && labelEl.querySelector("input, select, textarea");
+    if (inside) return inside;
+
+    // 3) hitta “fältblock” och välj en rimlig kontroll
+    const block = findFieldBlockFromLabel(labelEl, form);
+    if (!block) return null;
+
+    // Prioritera checkbox/radio/select framför textinputs (så du inte råkar ta första textfältet)
+    const preferred =
+      block.querySelector('input[type="checkbox"]') ||
+      block.querySelector('input[type="radio"]') ||
+      block.querySelector("select") ||
+      block.querySelector("textarea") ||
+      block.querySelector("input");
+
+    return preferred || null;
+  }
+
+
   function bindOutsideClickOnce() {
     if (SSAC_OUTSIDE_BOUND) return;
 
@@ -186,18 +233,13 @@
       }
     }
 
-    // 2) byLabel (främst checkbox)
+    // 2) byLabel (främst checkbox/radio/select – men funkar generellt)
     if (cc.byLabel && typeof cc.byLabel === "object") {
       for (const key of Object.keys(cc.byLabel)) {
         const labelText = cc.byLabel[key];
         if (!labelText) continue;
-        const lab = findLabelInForm(form, labelText);
-        if (!lab) continue;
-        const wrap = findFieldWrapperFromLabel(lab, form);
-        if (!wrap) continue;
 
-        // checkbox/radio inom wrappern
-        const el = wrap.querySelector('input[type="checkbox"], input[type="radio"], select, input, textarea');
+        const el = findControlByLabel(form, labelText);
         if (el) controls[key] = el;
       }
     }
