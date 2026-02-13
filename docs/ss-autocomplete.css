@@ -15,3 +15,14 @@
 .ssac-item[aria-selected="true"], .ssac-item:hover { background: rgba(0,0,0,.06); }
 .ssac-muted { opacity: .7; font-size: .95em; }
 .ssac-error { margin: 6px 0 0; }
+
+.ssac-panel{
+  /* position/width sätts av JS men resten här */
+  margin-top: 0;
+  border: 1px solid rgba(0,0,0,.15);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(0,0,0,.12);
+  max-height: 280px;
+  overflow: auto;
+}

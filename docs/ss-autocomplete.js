@@ -48,6 +48,23 @@
       .trim();
   }
 
+  function removeRequiredSuffixSafely(labelEl) {
+    // Tar bort "(Krävs)" / "(Required)" utan att förstöra wrappers/spans i labeln.
+    const re = /\(\s*krävs\s*\)|\(\s*required\s*\)/ig;
+
+    // Gå igenom bara textnoderna inuti labeln
+    const walker = global.document.createTreeWalker(labelEl, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    let n;
+    while ((n = walker.nextNode())) nodes.push(n);
+
+    for (const tn of nodes) {
+      const before = tn.nodeValue || "";
+      const after = before.replace(re, "").replace(/\s+/g, " ");
+      if (after !== before) tn.nodeValue = after;
+    }
+  }
+
   function setNativeValue(el, value) {
     const proto =
       el.tagName.toLowerCase() === "textarea"
@@ -122,36 +139,48 @@
   }
 
   // ---------- Error rendering ----------
-  function ensureErrorEl(labelWrapper) {
-    let err = labelWrapper.querySelector(".ssac-error");
-    if (!err) {
-      err = document.createElement("p");
-      err.className = "ssac-error";
-      // Put it early so it matches common “error under label” patterns
-      const firstP = labelWrapper.querySelector("p");
-      if (firstP) labelWrapper.insertBefore(err, firstP);
-      else labelWrapper.appendChild(err);
-    }
-    return err;
+  function findSquarespaceErrorEl(fieldWrapper) {
+    // 1) ARIA-first (vanligt i moderna themes)
+    const aria = fieldWrapper.querySelector(
+      '[role="alert"], [aria-live="polite"], [aria-live="assertive"]'
+    );
+    if (aria) return aria;
+
+    // 2) Klass-heuristik ("error")
+    const byClass = fieldWrapper.querySelector(
+      '.error, .field-error, .form-error, [class*="error"], [class*="Error"]'
+    );
+    if (byClass && (byClass.textContent || "").trim()) return byClass;
+
+    // 3) Text-heuristik som fallback
+    const candidates = Array.from(fieldWrapper.querySelectorAll("p, div, span, small"))
+      .filter(el => {
+        const t = (el.textContent || "").trim();
+        if (!t) return false;
+        const tt = t.toLowerCase();
+        return tt.includes("required") || tt.includes("obligator") || tt.includes("krävs");
+      });
+
+    return candidates[0] || null;
   }
 
-  function showError(wrapper, carrier, labelWrapper, msg) {
-    const err = ensureErrorEl(labelWrapper);
-    err.textContent = msg;
-    err.style.display = "";
-    carrier.setAttribute("aria-invalid", "true");
-    wrapper.dataset.ssacInvalid = "1";
+  function overrideSquarespaceErrorText(fieldWrapper, newText) {
+    // Vänta 2 frames så Squarespace hinner rendera fel-elementet
+    global.requestAnimationFrame(() => {
+      global.requestAnimationFrame(() => {
+        const el = findSquarespaceErrorEl(fieldWrapper);
+        if (el) el.textContent = newText;
+      });
+    });
   }
 
-  function clearError(wrapper, carrier, labelWrapper) {
-    const err = labelWrapper.querySelector(".ssac-error");
-    if (err) {
-      err.textContent = "";
-      err.style.display = "none";
-    }
+  function clearSquarespaceInvalidState(wrapper, carrier) {
+    // Vi rör inte Squarespace error-element direkt (de kan re-rendera),
+    // men vi kan ta bort vår egen invalid mark om vi satt någon.
     carrier.removeAttribute("aria-invalid");
     delete wrapper.dataset.ssacInvalid;
   }
+
 
   // ---------- UI ----------
   function buildUIInput(carrier, placeholder) {
@@ -171,6 +200,37 @@
     panel.setAttribute("role", "listbox");
     return panel;
   }
+
+  function buildPanelAnchor() {
+    const anchor = document.createElement("div");
+    anchor.className = "ssac-anchor";
+    // 0-höjd så den inte trycker content
+    anchor.style.position = "relative";
+    anchor.style.height = "0";
+    anchor.style.margin = "0";
+    anchor.style.padding = "0";
+    anchor.style.border = "0";
+    return anchor;
+  }
+
+  function mountPanelUnderInput(uiInput, carrier, panel) {
+    // Anchor direkt efter uiInput, panel inuti anchor
+    const anchor = buildPanelAnchor();
+    anchor.appendChild(panel);
+
+    // Lägg ankaret direkt efter uiInput (men före carrier), så det hamnar under input i flödet.
+    uiInput.insertAdjacentElement("afterend", anchor);
+
+    // Panelen blir absolut-positionerad relativt ankaret (som ligger precis under inputen)
+    panel.style.position = "absolute";
+    panel.style.top = "6px";     // lite luft under inputen
+    panel.style.left = "0";
+    panel.style.width = "100%";
+    panel.style.zIndex = "9999";
+
+    return anchor;
+  }
+
 
   function renderPanel(panel, items, activeIndex, emptyText) {
     panel.innerHTML = "";
@@ -292,9 +352,7 @@
 
     // Optional: remove "(Krävs)" from label if not required
     if (fieldCfg.removeRequiredSuffix && !fieldCfg.isRequired) {
-      const orig = labelEl.textContent;
-      const stripped = stripRequiredSuffix(orig);
-      if (stripped !== orig) labelEl.textContent = stripped;
+      removeRequiredSuffixSafely(labelEl);
     }
 
     const labelWrapper = findLabelWrapper(wrapper, labelEl);
@@ -304,7 +362,8 @@
     const panel = buildPanel();
 
     carrier.parentElement.insertBefore(uiInput, carrier);
-    carrier.parentElement.insertBefore(panel, carrier);
+    // Panelen ska inte vara syskon direkt – den ska ligga i anchor under uiInput:
+    mountPanelUnderInput(uiInput, carrier, panel);
 
     // Ensure wrapper is positioning context for dropdown
     const cs = global.getComputedStyle(wrapper);
@@ -369,7 +428,7 @@
     function commitSelection(item) {
       state.selectedItem = item;
       uiInput.value = item.label;
-      clearError(wrapper, carrier, labelWrapper);
+      clearSquarespaceInvalidState(wrapper, carrier);
       closePanel();
       // Note: do NOT write to carrier here (avoid “state fights”); do it just-in-time on submit.
     }
@@ -484,22 +543,29 @@
         const res = commitToCarrierForSubmit();
 
         if (!res.ok) {
-          e.preventDefault();
-          e.stopPropagation();
-
+          // Viktigt: LÅT Squarespace göra sin egen blocking + error render
+          // genom att carrier är tomt (commitToCarrierForSubmit sätter den till "")
           const msg =
             res.reason === "typed_no_selection"
               ? (fieldCfg.errorText || "Välj ett alternativ från listan.")
               : (fieldCfg.requiredErrorText || "Det här fältet är obligatoriskt.");
 
-          showError(wrapper, carrier, labelWrapper, msg);
-          uiInput.focus();
-        } else {
-          clearError(wrapper, carrier, labelWrapper);
+          // När Squarespace har skapat sin error-node: skriv över texten
+          overrideSquarespaceErrorText(wrapper, msg);
+
+          // Fokusera din UI-input
+          global.setTimeout(() => uiInput.focus(), 0);
+
+          // Inget preventDefault här – Squarespace required stoppar ändå submit.
+          return;
         }
+
+        // OK: rensa ev vår invalid mark
+        clearSquarespaceInvalidState(wrapper, carrier);
       },
       true
     );
+
 
     wrapper.dataset[`ssacEnhanced_${fieldCfg._key}`] = "1";
     return true;
