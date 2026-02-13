@@ -139,95 +139,6 @@
   }
 
   // ---------- Error rendering ----------
-  function findSquarespaceErrorEl(fieldWrapper) {
-    // Hjälpare: element som vi ALDRIG vill skriva över
-    function isUnsafe(el) {
-      if (!el) return true;
-      const tag = el.tagName ? el.tagName.toUpperCase() : "";
-      if (tag === "LABEL") return true;
-      // Skriv aldrig över hela wrappern
-      if (el === fieldWrapper) return true;
-      // Skriv inte över något som innehåller inputs/textarea/select (dvs layout-wrappers)
-      if (el.querySelector && el.querySelector("input, textarea, select, button")) return true;
-      return false;
-    }
-
-    // 1) ARIA: mest sannolikt ett riktigt error-element
-    const aria = fieldWrapper.querySelector(
-      '[role="alert"], [aria-live="polite"], [aria-live="assertive"]'
-    );
-    if (aria && !isUnsafe(aria)) return aria;
-
-    // 2) Klassbaserat: ta bara "små text-noder", inte wrappers
-    const classCandidates = Array.from(
-      fieldWrapper.querySelectorAll(
-        // ta vanliga fel-klasser men undvik att fånga hela wrapperstrukturer
-        ".error, .field-error, .form-error, [class*='error'], [class*='Error']"
-      )
-    ).filter((el) => {
-      if (isUnsafe(el)) return false;
-      const t = (el.textContent || "").trim();
-      if (!t) return false;
-      // Typiska fel är ganska korta
-      if (t.length > 200) return false;
-      return true;
-    });
-
-    if (classCandidates.length) return classCandidates[0];
-
-    // 3) Text-heuristik fallback: men ALDRIG label, och ALDRIG wrappers med inputs
-    const textCandidates = Array.from(fieldWrapper.querySelectorAll("p, div, span, small"))
-      .filter((el) => {
-        if (isUnsafe(el)) return false;
-        const t = (el.textContent || "").trim();
-        if (!t) return false;
-
-        const tt = t.toLowerCase();
-        const looksLikeError =
-          tt.includes("required") ||
-          tt.includes("obligator") ||
-          tt.includes("krävs") ||
-          tt.includes("måste");
-
-        if (!looksLikeError) return false;
-
-        // Om texten ser ut som en vanlig label (kort, inga typiska felord) skippar vi ändå
-        if (t.length > 200) return false;
-
-        return true;
-      });
-
-    return textCandidates[0] || null;
-  }
-
-  function overrideSquarespaceErrorText(fieldWrapper, newText) {
-    // Vi vill INTE skriva över något om inte ett säkert error-element finns.
-    // Därför retry:ar vi en kort stund tills Squarespace har renderat felet.
-
-    const MAX_TRIES = 20;      // ~20 frames / checks
-    const DELAY_MS = 25;       // tät retry, men kort period (20*25ms=500ms)
-
-    let tries = 0;
-
-    function attempt() {
-      tries++;
-      const el = findSquarespaceErrorEl(fieldWrapper);
-
-      if (el) {
-        el.textContent = newText;
-        return;
-      }
-
-      if (tries < MAX_TRIES) {
-        setTimeout(attempt, DELAY_MS);
-      }
-    }
-
-    // Vänta 2 frames så Squarespace hinner köra sin submit/validation först
-    requestAnimationFrame(() => requestAnimationFrame(attempt));
-  }
-
-
   function clearSquarespaceInvalidState(wrapper, carrier) {
     // Vi rör inte Squarespace error-element direkt (de kan re-rendera),
     // men vi kan ta bort vår egen invalid mark om vi satt någon.
@@ -666,27 +577,17 @@
         const res = commitToCarrierForSubmit();
 
         if (!res.ok) {
-          // Vi låter Squarespace stoppa submit via required (carrier är "")
-          // och vi visar vår hint istället för att försöka skriva över Squarespace error-noder.
-          const msg =
-            res.reason === "typed_no_selection"
-              ? (fieldCfg.errorText || "Välj ett alternativ från listan.")
-              : (fieldCfg.requiredErrorText || "Det här fältet är obligatoriskt.");
-
-          showHint(wrapper, uiInput, msg);
-          setUiInvalid(uiInput, true);
-
+          // Låt Squarespace visa sitt eget standardfel (required).
+          // Vi gör bara så att användaren hamnar i rätt fält.
           global.setTimeout(() => uiInput.focus(), 0);
-          return; // ingen preventDefault här
+          return; // ingen preventDefault
         }
 
-        // OK: rensa vår hint/invalid
         clearSquarespaceInvalidState(wrapper, carrier);
-        clearHint(wrapper);
-        setUiInvalid(uiInput, false);
       },
       true
     );
+
 
 
 
