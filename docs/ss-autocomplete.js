@@ -40,14 +40,6 @@
       .toLowerCase();
   }
 
-  function stripRequiredSuffix(labelText) {
-    return String(labelText ?? "")
-      .replace(/\(\s*krävs\s*\)/ig, "")
-      .replace(/\(\s*required\s*\)/ig, "")
-      .replace(/\s+/g, " ")
-      .trim();
-  }
-
   function removeRequiredSuffixSafely(labelEl) {
     // Tar bort "(Krävs)" / "(Required)" utan att förstöra wrappers/spans i labeln.
     const re = /\(\s*krävs\s*\)|\(\s*required\s*\)/ig;
@@ -79,21 +71,6 @@
   function dispatchInputEvents(el) {
     el.dispatchEvent(new Event("input", { bubbles: true }));
     el.dispatchEvent(new Event("change", { bubbles: true }));
-  }
-
-  function closestForm(startEl) {
-    if (!startEl) return null;
-    const direct = startEl.closest && startEl.closest("form");
-    if (direct) return direct;
-
-    const dialog = startEl.closest
-      ? startEl.closest('[role="dialog"],[aria-modal="true"]')
-      : null;
-    if (dialog) {
-      const f = dialog.querySelector("form");
-      if (f) return f;
-    }
-    return null;
   }
 
   function findLabelInForm(form, targetLabel) {
@@ -131,11 +108,6 @@
       }
     );
     return candidates[0] || null;
-  }
-
-  function findLabelWrapper(wrapper, labelEl) {
-    // Heuristic: label's parent often holds required suffix/error in many themes.
-    return labelEl && labelEl.parentElement ? labelEl.parentElement : wrapper;
   }
 
 
@@ -312,8 +284,6 @@
       removeRequiredSuffixSafely(labelEl);
     }
 
-    const labelWrapper = findLabelWrapper(wrapper, labelEl);
-
     // Build UI and inject before carrier (so it inherits theme styling as you observed)
     const uiInput = buildUIInput(carrier, fieldCfg.placeholder || "Sök och välj…");
     const panel = buildPanel();
@@ -367,6 +337,11 @@
       panel.hidden = true;
       state.activeIndex = -1;
     }
+
+    const panelApi = { wrapper, close: closePanel };
+    openPanels.add(panelApi);
+
+
     function updateResults() {
       if (!fieldCfg._dataLoaded) {
         state.results = [];
@@ -483,15 +458,6 @@
       commitSelection(item);
     });
 
-    // Close if click outside wrapper
-    global.document.addEventListener(
-      "mousedown",
-      (e) => {
-        if (!wrapper.contains(e.target)) closePanel();
-      },
-      true
-    );
-
     // Submit handler (capture: we run before most libs)
     form.addEventListener(
       "submit",
@@ -532,6 +498,15 @@
       return ff;
     });
 
+    const openPanels = new Set();
+    function closeAllPanelsIfClickOutside(e) {
+      for (const api of openPanels) {
+        if (!api.wrapper.contains(e.target)) api.close();
+      }
+    }
+    global.document.addEventListener("mousedown", closeAllPanelsIfClickOutside, true);
+
+
     // Enhance any existing forms
     global.document.querySelectorAll("form").forEach((form) => {
       for (const f of cfg.fields) enhanceField(form, cfg, f);
@@ -567,7 +542,13 @@
     }
 
     log(cfg, "Initialized with fields:", cfg.fields.map((x) => x._key));
-    return { destroy: () => obs.disconnect() };
+    return {
+      destroy: () => {
+        obs.disconnect();
+        global.document.removeEventListener("mousedown", closeAllPanelsIfClickOutside, true);
+        openPanels.clear();
+      }
+    };
   }
 
   // ---------- Deep merge ----------
