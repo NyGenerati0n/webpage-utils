@@ -27,6 +27,11 @@
     },
   };
 
+  // One global outside-click handler per init-session (undviker en per fält)
+  let SSAC_OPEN_PANELS = null;
+  let SSAC_OUTSIDE_HANDLER = null;
+  let SSAC_OUTSIDE_BOUND = false;
+
   // ---------- Utilities ----------
   function log(cfg, ...args) {
     if (cfg && cfg.debug) console.log("[SSAutocomplete]", ...args);
@@ -110,6 +115,34 @@
     return candidates[0] || null;
   }
 
+  function bindOutsideClickOnce() {
+    if (SSAC_OUTSIDE_BOUND) return;
+
+    SSAC_OUTSIDE_HANDLER = function (e) {
+      if (!SSAC_OPEN_PANELS) return;
+      for (const api of SSAC_OPEN_PANELS) {
+        // defensivt: om wrapper försvunnit (popup stängd), städa bort den
+        if (!api || !api.wrapper || !api.close) continue;
+        if (!global.document.documentElement.contains(api.wrapper)) {
+          SSAC_OPEN_PANELS.delete(api);
+          continue;
+        }
+        if (!api.wrapper.contains(e.target)) api.close();
+      }
+    };
+
+    global.document.addEventListener("mousedown", SSAC_OUTSIDE_HANDLER, true);
+    SSAC_OUTSIDE_BOUND = true;
+  }
+
+  function unbindOutsideClickIfAny() {
+    if (!SSAC_OUTSIDE_BOUND) return;
+    global.document.removeEventListener("mousedown", SSAC_OUTSIDE_HANDLER, true);
+    SSAC_OUTSIDE_BOUND = false;
+    SSAC_OUTSIDE_HANDLER = null;
+  }
+
+
 
   // ---------- UI ----------
   function buildUIInput(carrier, placeholder) {
@@ -137,14 +170,14 @@
     return anchor;
   }
 
-  function mountPanelUnderInput(uiInput, carrier, panel) {
+  function mountPanelUnderInput(uiInput, panel) {
     // Anchor direkt efter uiInput, panel inuti anchor
     const anchor = buildPanelAnchor();
     anchor.appendChild(panel);
 
     // Lägg ankaret direkt efter uiInput (men före carrier), så det hamnar under input i flödet.
     uiInput.insertAdjacentElement("afterend", anchor);
-    panel.classList.add("ssac-panel--anchored")
+    panel.classList.add("ssac-panel--anchored");
 
     return anchor;
   }
@@ -279,7 +312,7 @@
 
     carrier.parentElement.insertBefore(uiInput, carrier);
     // Panelen ska inte vara syskon direkt – den ska ligga i anchor under uiInput:
-    mountPanelUnderInput(uiInput, carrier, panel);
+    mountPanelUnderInput(uiInput, panel);
 
     // Ensure wrapper is positioning context for dropdown
     const cs = global.getComputedStyle(wrapper);
@@ -319,7 +352,8 @@
     }
 
     const panelApi = { wrapper, close: closePanel };
-    openPanels.add(panelApi);
+    if (SSAC_OPEN_PANELS) SSAC_OPEN_PANELS.add(panelApi);
+    
 
 
     function updateResults() {
@@ -477,13 +511,8 @@
       return ff;
     });
 
-    const openPanels = new Set();
-    function closeAllPanelsIfClickOutside(e) {
-      for (const api of openPanels) {
-        if (!api.wrapper.contains(e.target)) api.close();
-      }
-    }
-    global.document.addEventListener("mousedown", closeAllPanelsIfClickOutside, true);
+    SSAC_OPEN_PANELS = new Set();
+    bindOutsideClickOnce();
 
 
     // Enhance any existing forms
@@ -521,11 +550,13 @@
     }
 
     log(cfg, "Initialized with fields:", cfg.fields.map((x) => x._key));
+    
     return {
       destroy: () => {
         obs.disconnect();
-        global.document.removeEventListener("mousedown", closeAllPanelsIfClickOutside, true);
-        openPanels.clear();
+        if (SSAC_OPEN_PANELS) SSAC_OPEN_PANELS.clear();
+        SSAC_OPEN_PANELS = null;
+        unbindOutsideClickIfAny();
       }
     };
   }
