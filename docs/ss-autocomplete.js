@@ -339,6 +339,14 @@
     });
   }
 
+  function scrollActiveItemIntoView(panel) {
+    if (!panel || panel.hidden) return;
+    const active = panel.querySelector('.ssac-item[aria-selected="true"]');
+    if (!active || !active.scrollIntoView) return;
+    active.scrollIntoView({ block: "nearest" });
+  }
+
+
   // ---------- Data loading & search ----------
   async function loadDataOnce(field, rootCfg) {
     if (field._dataLoaded) return;
@@ -504,9 +512,11 @@
         renderPanel(panel, [], -1, fieldCfg.emptyText);
         return;
       }
+      
       state.results = search(fieldCfg, uiInput.value, fieldCfg.maxResults || 8);
       state.activeIndex = state.results.length ? 0 : -1;
       renderPanel(panel, state.results, state.activeIndex, fieldCfg.emptyText);
+      scrollActiveItemIntoView(panel);
     }
 
     function clearSelectionOnType() {
@@ -636,12 +646,14 @@
         if (state.results.length) {
           state.activeIndex = Math.min(state.activeIndex + 1, state.results.length - 1);
           renderPanel(panel, state.results, state.activeIndex, fieldCfg.emptyText);
+          scrollActiveItemIntoView(panel);
         }
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
         if (state.results.length) {
           state.activeIndex = Math.max(state.activeIndex - 1, 0);
           renderPanel(panel, state.results, state.activeIndex, fieldCfg.emptyText);
+          scrollActiveItemIntoView(panel);
         }
       } else if (e.key === "Enter") {
         if (state.activeIndex >= 0 && state.results[state.activeIndex]) {
