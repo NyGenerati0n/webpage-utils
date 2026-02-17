@@ -477,6 +477,7 @@
 
     function openPanel() {
       if (state.disabled) return;
+      if (!state.listEnabled) return;
       state.isOpen = true;
       panel.hidden = false;
     }
@@ -492,6 +493,12 @@
 
 
     function updateResults() {
+      if (!state.listEnabled) {
+        state.results = [];
+        renderPanel(panel, [], -1, fieldCfg.emptyText);
+        return;
+      }
+      
       if (!fieldCfg._dataLoaded) {
         state.results = [];
         renderPanel(panel, [], -1, fieldCfg.emptyText);
@@ -573,6 +580,7 @@
     }
 
     // default
+    state.listEnabled = true;
     state.freeTextMode = false;
 
     // Bind condition controls only if configured
@@ -583,6 +591,11 @@
         const res = fieldCfg.conditions({ controls, form, wrapper, uiInput, carrier, state }) || {};
         if (typeof res.enabled === "boolean") setEnabled(res.enabled);
         if (typeof res.freeTextMode === "boolean") setFreeTextMode(res.freeTextMode);
+
+        if (typeof res.listEnabled === "boolean") {
+          state.listEnabled = res.listEnabled;
+          if (!state.listEnabled) closePanel();
+        }
 
         if (res.clearSelection) {
           state.selectedItem = null;
