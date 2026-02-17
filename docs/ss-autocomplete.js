@@ -1,5 +1,5 @@
 /*!
- * SSAutocomplete v0.1
+ * SSAutocomplete v1.0
  * Host this file externally and load on Squarespace pages.
  */
 (function (global) {
