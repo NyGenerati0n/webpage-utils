@@ -472,6 +472,7 @@
       results: [],
       activeIndex: -1,
       disabled: false,
+      freeTextEmptyToSentinel: false,
     };
 
     // Load data (async)
@@ -512,7 +513,7 @@
         renderPanel(panel, [], -1, fieldCfg.emptyText);
         return;
       }
-      
+
       state.results = search(fieldCfg, uiInput.value, fieldCfg.maxResults || 8);
       state.activeIndex = state.results.length ? 0 : -1;
       renderPanel(panel, state.results, state.activeIndex, fieldCfg.emptyText);
@@ -541,10 +542,35 @@
 
       if (state.freeTextMode) {
         const v = String(uiInput.value || "").trim();
+
+        // Om tomt i free-text:
+        // - om isRequired -> fail (låt Squarespace stoppa)
+        // - om inte required och flaggan är på -> skriv sentinel så submit går igenom
+        if (!v) {
+          if (fieldCfg.isRequired) {
+            setNativeValue(carrier, "");
+            dispatchInputEvents(carrier);
+            return { ok: false, reason: "required_empty" };
+          }
+
+          if (state.freeTextEmptyToSentinel) {
+            setNativeValue(carrier, fieldCfg.sentinelValue || "__SS_EMPTY__");
+            dispatchInputEvents(carrier);
+            return { ok: true, freeText: true, sentinel: true };
+          }
+
+          // annars: lämna blankt (om du vill tillåta blankt utan sentinel)
+          setNativeValue(carrier, "");
+          dispatchInputEvents(carrier);
+          return { ok: true, freeText: true };
+        }
+
+        // Vanlig free-text: skicka texten
         setNativeValue(carrier, v);
         dispatchInputEvents(carrier);
         return { ok: true, freeText: true };
       }
+
 
 
       if (state.selectedItem) {
@@ -605,6 +631,10 @@
         if (typeof res.listEnabled === "boolean") {
           state.listEnabled = res.listEnabled;
           if (!state.listEnabled) closePanel();
+        }
+
+        if (typeof res.freeTextEmptyToSentinel === "boolean") {
+          state.freeTextEmptyToSentinel = res.freeTextEmptyToSentinel;
         }
 
         if (res.clearSelection) {
