@@ -12,7 +12,7 @@
   overflow: auto;
 }
 .ssac-item { padding: 10px 12px; cursor: pointer; line-height: 1.2; }
-.ssac-item[aria-selected="true"], .ssac-item:hover { color: red; background: rgba(0,0,0,.06); }
+.ssac-item[aria-selected="true"], .ssac-item:hover { box-shadow: inset 3px 0 0 rgba(0,0,0,.18); background: rgba(0,0,0,.06); }
 .ssac-muted { opacity: .7; font-size: .95em; }
 .ssac-error { margin: 6px 0 0; }
 
