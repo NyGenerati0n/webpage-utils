@@ -39,6 +39,8 @@ För att ladda upp koden till github brukar man använda programmet `git`. Om du
 
 Här är en quickstart för att använda `git` i `vscode`: [vscode quickstart](https://code.visualstudio.com/docs/sourcecontrol/quickstart)
 
-Ett tips om du vill lära dig mer är att använda branchess. Det finns en beskrivning på vad det är och hur du använder det här: [vscode branches](https://code.visualstudio.com/docs/sourcecontrol/branches-worktrees)
+Ett tips är att commita så mycket som möjligt, så fort du gjort en meningsfull ändring och skriv vad du ändrade i meddelandet. 
+
+Om du vill lära dig mer är att använda branchess. Det finns en beskrivning på vad det är och hur du använder det här: [vscode branches](https://code.visualstudio.com/docs/sourcecontrol/branches-worktrees)
 
 ***`OBS!`*** branches är nödvändigt att lära sig om när flera personer ska jobba på koden samtidigt, även om det är olika verktyg till hemsidan (det vill säga när man jobbar på samma repository).
