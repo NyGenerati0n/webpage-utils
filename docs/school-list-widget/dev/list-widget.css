@@ -130,11 +130,11 @@
 
 
 .list-widget-school-card-group-indicator {
-    width: 5px;
-    height: 5px;
+    width: .4rem;
+    height: .4rem;
     border-radius: 50%;
     border: 1px solid;
-    margin-right: 5px;
+    margin-right: .4rem;
     flex-shrink: 0;
 }
 
