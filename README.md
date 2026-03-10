@@ -2,10 +2,10 @@
 Detta repo innehåller kod som används på våran hemsida nygeneration.se. Här sparas all kod och data som används på hemsidan. 
 
 ## Filstruktur kodbibliotek
-Alla kodfiler fins under mappen `doc` under branchen `main` och följer följande struktur:
+Alla kodfiler fins under mappen `docs/` under branchen `main` och följer följande struktur:
 
 ```text
-doc/ (branch: main)
+docs/ (branch: main)
 ├── index.html
 ├── preview.html
 └── <code-library-name>
@@ -35,7 +35,7 @@ Mappen `dev/` används när man utvecklar/ändrar verktyget. Dessa filer kan man
 
 
 ## Att länka till kodbibliotek
-Alla filer i `doc/` mappen publiceras på en webserver med `github pages`. Du kommer åt filerna i den mappen genom att gå in på länken nedan följt av sökvägen för filen. 
+Alla filer i `docs/` mappen publiceras på en webserver med `github pages`. Du kommer åt filerna i den mappen genom att gå in på länken nedan följt av sökvägen för filen. 
 
 `https://nygenerati0n.github.io/webpage-utils/<path to file>`
 
