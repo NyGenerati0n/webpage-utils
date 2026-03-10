@@ -1,13 +1,13 @@
 # Kodbibliotek nygeneration.se
-Detta repo innehåller kod som används på våran hemsida nygeneration.se. Alla filer som är publiserade och kan användas av hemsidan finns under mappen `doc/`. Så här ser filstrukturen ut. 
+Detta repo innehåller kod som används på våran hemsida nygeneration.se. Här sparas all kod och data som används på hemsidan. 
+
+## Filstruktur kodbibliotek
+Alla kodfiler fins under mappen `doc` under branchen `main` och följer följande struktur:
 
 ```text
-doc/
+doc/ (branch: main)
 ├── index.html
 ├── preview.html
-├── data/
-│   ├── schools.json
-│   └── <other-data>
 └── <code-library-name>
         ├── dev/
         │   ├── test.html
@@ -16,22 +16,49 @@ doc/
         └── README.md
 ```
 
-## Mappen `data/`
-Mappen innehåller all data som används på hemsidan. 
 
-`schools.json` uppdatersas just nu automatiskt av ett appsscript som hämtar data från salesforce. 
+### Filen `index.html`
+---
+Denna fil innehåller lite info om sidan och vart all kod fins.
 
-## Mappen `<code-library-name>/`
+
+### Filen `preview.html`
+---
+Denna fil innehåller en preview av varje egengjort element (som är fristående och inte kräver andra element från en squarespace sida). Denna bör länka till produktionskoden i biblioteken. 
+
+
+### Mappen `<code-library-name>/`
+---
 Innehåller alla filer för att implementera en specifik funktion på hemsidan och gärna en README.md fil som förklarar hur man använder koden. 
 
 Mappen `dev/` används när man utvecklar/ändrar verktyget. Dessa filer kan man länka till i gömda/debug sidor på squarespace för att testa koden utan att riskera att förstöra funktionen på sidor som redan använder en tidigare version av koden. Sidorna som användarna ser (dvs de som är i produktion) ska länka till koden utanför `dev/` det vill säga i mappen `<code-library-name>/`. I `dev/` kan man också testa lokalt med en test.html fil eller liknande när det är möjligt (rekommenderat). 
 
-## Filen `index.html`
-Denna fil innehåller lite info om sidan och vart all kod fins.
 
-## Filen `preview.html`
-Denna fil innehåller en preview av varje egengjort element (som är fristående och inte kräver andra element från en squarespace sida). Denna bör länka till produktionskoden i biblioteken. 
+## Att länka till kodbibliotek
+Alla filer i `doc/` mappen publiceras på en webserver med `github pages`. Du kommer åt filerna i den mappen genom att gå in på länken nedan följt av sökvägen för filen. 
 
+`https://nygenerati0n.github.io/schools-export/<path to file>`
+
+### Exempel
+---
+
+Om du ska hämta filen `script.js` i kodbiblioteket `exempel-projekt` för en sida i produktion (som användarna ser) så blir länken:
+
+`https://nygenerati0n.github.io/schools-export/exempel-projekt/script.js`
+
+Och om du ska hämta samma kod men för att testa den i en squarespace-sida för debugging som inte syns för anävndarna blir länken istället:
+
+`https://nygenerati0n.github.io/schools-export/exempel-projekt/dev/script.js`
+
+
+
+## Data
+All data som används av hemsidan finns sparat i branchen `data-storage`. Den branchen har för tillfället ingen struktur utan alla filer finns i root-mappen. 
+
+## Att länka till data
+För att länka till data på hemsidan använder du githubs raw länkar. Detta gör du genom att öppna filen i github och klicka på att visa den som raw. 
+
+Alternativt kan du använda denna länk: `TODO!!!`
 
 
 ## Utveckling och `git`
@@ -43,4 +70,4 @@ Ett tips är att commita så mycket som möjligt, så fort du gjort en meningsfu
 
 Om du vill lära dig mer är att använda branchess. Det finns en beskrivning på vad det är och hur du använder det här: [vscode branches](https://code.visualstudio.com/docs/sourcecontrol/branches-worktrees)
 
-***`OBS!`*** branches är nödvändigt att lära sig om när flera personer ska jobba på koden samtidigt, även om det är olika verktyg till hemsidan (det vill säga när man jobbar på samma repository).
+***`OBS!`*** branches är nödvändigt att lära sig om när flera personer ska jobba på koden samtidigt, även om man jobbar på olika verktyg (det vill säga när man jobbar på samma repository).
