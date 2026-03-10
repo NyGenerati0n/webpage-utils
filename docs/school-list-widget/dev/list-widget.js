@@ -6,6 +6,9 @@ const NO_MORE_RESULTS_LABEL = "Det finns inga fler resultat";
 const NO_RESULT_LABEL = "Inga resultat hittades";
 const SEARCH_PLACEHOLDER_TEXT = "Sök på din skola...";
 
+const scriptUrl = document.currentScript.src;
+const baseUrl = scriptUrl.substring(0, scriptUrl.lastIndexOf('/'));
+
 document.addEventListener("DOMContentLoaded", () => {
   // Hitta elementet med data-attributet
   const containers = document.querySelectorAll('[data-school-app="true"]');
@@ -154,7 +157,7 @@ function createTextInput(className = "", placeholderText = "") {
 function createImg(src, className = "") {
   const el = document.createElement("img");
   el.className = className;
-  el.src = src;
+  el.src = baseUrl + "/" + src;
   return el;
 }
 
@@ -210,9 +213,9 @@ function buildLayout(target) {
   const EL_INPUT_CONTAINER = createDiv("list-widget-search-input-container");
   const EL_SEARCH_INPUT = createTextInput("list-widget-search-input", SEARCH_PLACEHOLDER_TEXT);
   const EL_SEARCH_BUTTON = createDiv("list-widget-search-button");
-  const EL_SEARCH_BUTTON_IMG = createImg("magnifying-glass-icon.png", "list-widget-image");
+  const EL_SEARCH_BUTTON_IMG = createImg("img/magnifying-glass-icon.png", "list-widget-image");
   const EL_FILTER_BUTTON = createDiv("list-widget-search-filter-button");
-  const EL_FILTER_BUTTON_IMG = createImg("filter-icon.png", "list-widget-image");
+  const EL_FILTER_BUTTON_IMG = createImg("img/filter-icon.png", "list-widget-image");
   const EL_LIST_CONTAINER = createDiv("list-widget-schools-container");
 
 
