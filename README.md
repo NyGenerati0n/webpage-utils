@@ -37,18 +37,18 @@ Mappen `dev/` används när man utvecklar/ändrar verktyget. Dessa filer kan man
 ## Att länka till kodbibliotek
 Alla filer i `doc/` mappen publiceras på en webserver med `github pages`. Du kommer åt filerna i den mappen genom att gå in på länken nedan följt av sökvägen för filen. 
 
-`https://nygenerati0n.github.io/schools-export/<path to file>`
+`https://nygenerati0n.github.io/webpage-utils/<path to file>`
 
 ### Exempel
 ---
 
 Om du ska hämta filen `script.js` i kodbiblioteket `exempel-projekt` för en sida i produktion (som användarna ser) så blir länken:
 
-`https://nygenerati0n.github.io/schools-export/exempel-projekt/script.js`
+`https://nygenerati0n.github.io/webpage-utils/exempel-projekt/script.js`
 
 Och om du ska hämta samma kod men för att testa den i en squarespace-sida för debugging som inte syns för anävndarna blir länken istället:
 
-`https://nygenerati0n.github.io/schools-export/exempel-projekt/dev/script.js`
+`https://nygenerati0n.github.io/webpage-utils/exempel-projekt/dev/script.js`
 
 
 
@@ -60,7 +60,7 @@ För att länka till data på hemsidan använder du githubs raw länkar. Detta g
 
 Alternativt kan du använda länken nedan och byta ut `<filepath>` mot namnet på filen du vill komma åt. Detta fungerar så länge filen ligger i root-mappen (inte ligger i en mapp i repon). Gör dendet behöver du lägga till hela filsökvägen.
 
-`https://raw.githubusercontent.com/NyGenerati0n/schools-export/refs/heads/data-storage/<filepath>`
+`https://raw.githubusercontent.com/NyGenerati0n/webpage-utils/refs/heads/data-storage/<filepath>`
 
 
 ## Utveckling och `git`
