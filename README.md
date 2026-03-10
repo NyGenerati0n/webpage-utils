@@ -58,7 +58,9 @@ All data som används av hemsidan finns sparat i branchen `data-storage`. Den br
 ## Att länka till data
 För att länka till data på hemsidan använder du githubs raw länkar. Detta gör du genom att öppna filen i github och klicka på att visa den som raw. 
 
-Alternativt kan du använda denna länk: `TODO!!!`
+Alternativt kan du använda länken nedan och byta ut `<filepath>` mot namnet på filen du vill komma åt. Detta fungerar så länge filen ligger i root-mappen (inte ligger i en mapp i repon). Gör dendet behöver du lägga till hela filsökvägen.
+
+`https://raw.githubusercontent.com/NyGenerati0n/schools-export/refs/heads/data-storage/<filepath>`
 
 
 ## Utveckling och `git`
