@@ -24,14 +24,14 @@ Denna fil innehåller lite info om sidan och vart all kod finns.
 
 ### Filen `preview.html`
 ---
-Denna fil innehåller en preview av varje egengjort element (som är fristående och inte kräver andra element från en squarespace sida). I den här filen bör du länka till produktionskoden i biblioteken (inte koden i `dev/`). 
+Denna fil innehåller en preview av varje egengjort element (som är fristående och inte kräver andra element från en Squarespace sida). I den här filen bör du länka till produktionskoden i biblioteken (inte koden i `dev/`). 
 
 
 ### Mappen `<code-library-name>/`
 ---
 Innehåller alla filer för att implementera en specifik funktion på hemsidan och gärna en README.md fil som förklarar hur man använder koden. 
 
-Mappen `dev/` används när man utvecklar/ändrar verktyget. Dessa filer kan man länka till i gömda/debug sidor på squarespace för att testa koden utan att riskera att förstöra funktionen på sidor som redan använder en tidigare version av koden. Sidorna som användarna ser (dvs de som är i produktion) ska länka till koden utanför `dev/` det vill säga i mappen `<code-library-name>/`. I `dev/` kan man också testa lokalt med en test.html fil eller liknande när det är möjligt (rekommenderat). 
+Mappen `dev/` används när man utvecklar/ändrar verktyget. Dessa filer kan man länka till i gömda/debug sidor på Squarespace för att testa koden utan att riskera att förstöra funktionen på sidor som redan använder en tidigare version av koden. Sidorna som användarna ser (dvs de som är i produktion) ska länka till koden utanför `dev/` det vill säga i mappen `<code-library-name>/`. I `dev/` kan man också testa lokalt med en test.html fil eller liknande när det är möjligt (rekommenderat). 
 
 
 ## Att länka till kodbibliotek
@@ -46,7 +46,7 @@ Om du ska hämta filen `script.js` i kodbiblioteket `exempel-projekt` för en si
 
 `https://nygenerati0n.github.io/webpage-utils/exempel-projekt/script.js`
 
-Och om du ska hämta samma fil men för att testa den i en squarespace-sida för debugging som inte syns för anävndarna blir länken istället:
+Och om du ska hämta samma fil men för att testa den i en Squarespace-sida för debugging som inte syns för användarna blir länken istället:
 
 `https://nygenerati0n.github.io/webpage-utils/exempel-projekt/dev/script.js`
 

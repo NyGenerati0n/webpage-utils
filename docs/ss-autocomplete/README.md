@@ -8,14 +8,13 @@ Biblioteket har fullt stöd för asynkron data (via Fetch), komplex villkorlig l
 
 ## 📦 Installation
 
-1. Ladda upp `ss-autocomplete.js` och `ss-autocomplete.css` till din webbplats (t.ex. via Squarespaces Link Editor -> File).
-2. Gå till **Settings > Advanced > Code Injection > Footer** och lägg till följande:
+1. Gå till **Settings > Advanced > Code Injection > Footer** och lägg till följande:
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
 
-<link rel="stylesheet" href="/s/ss-autocomplete.css">
-<script src="/s/ss-autocomplete.js"></script>
+<link rel="stylesheet" href="<path to folder>/ss-autocomplete.css">
+<script src="<path to folder>/ss-autocomplete.js"></script>
 
 <script>
   document.addEventListener("DOMContentLoaded", function() {
@@ -33,10 +32,10 @@ Om du inte har tillgång till global *Code Injection* (t.ex. på Squarespace Per
 2. Klistra in följande kod (se till att "HTML" är valt och "Display Source" är avstängt):
 
 ```html
-<link rel="stylesheet" href="/s/ss-autocomplete.css">
-<script src="[https://cdn.jsdelivr.net/npm/fuse.js@6.6.2](https://cdn.jsdelivr.net/npm/fuse.js@6.6.2)"></script>
+<link rel="stylesheet" href="<path to folder>/ss-autocomplete.css">
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
 
-<script src="/s/ss-autocomplete.js"></script>
+<script src="<path to folder>/ss-autocomplete.js"></script>
 
 <script>
   (function() {
@@ -65,6 +64,10 @@ Om du inte har tillgång till global *Code Injection* (t.ex. på Squarespace Per
   })();
 </script>
 ```
+
+### Länkar
+
+För att hitta länken som du skriver in i stället för `<path to folder>` och i konfigens `dataUrl` kan du använda instruktionerna som finns i filen README.md i projektets root-mapp (huvudmappen) om att [Länka kod](../../README.md#att-länka-till-kodbibliotek) och att [Länka data](../../README.md#att-länka-till-data). 
 
 ---
 
