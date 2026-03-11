@@ -6,7 +6,7 @@ Just nu är koden specialskriven för att visa en viss struktur på data, det vi
 ## Användning
 Så här lägger du till koden på en squarespace-sida:
 
-1. Börja med att importera kodbiblioteket fuse.js. Lägg denna kod antingen i en code-injection eller i samma kodblock som i steg två. Du kan byta ut versionen (7.1.0) till senaste versionen om du vill/det behövs. 
+1. Börja med att importera kodbiblioteket fuse.js. Lägg denna kod antingen i en code-injection eller i samma kodblock som i steg två. Du kan byta ut versionen (7.1.0) till senaste versionen om du vill/om det behövs. 
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.1.0"></script>
@@ -15,7 +15,7 @@ Så här lägger du till koden på en squarespace-sida:
 2. Lägg in denna kod i ett kodblock på hemsidan där du vill ha listan:
 
 ```html
-<div data-school-app="true" data-url="<url till datan>">
+<div data-school-app="true" data-url="<url till data>">
     Laddar skolor...
 </div>
 
@@ -24,7 +24,7 @@ Så här lägger du till koden på en squarespace-sida:
 
 `data-school-app="true"` talar om för skriptet att detta element ska användas som wrapper till listan. 
 
-`data-url` är länken till datan som ska visas (dvs alla skolor och skolgrupper). 
+`data-url` är länken till data som ska visas (dvs alla skolor och skolgrupper). 
 
 3. Länka stylingen genom att lägga in detta i code-injektion:
 
@@ -33,4 +33,4 @@ Så här lägger du till koden på en squarespace-sida:
 ```
 
 ## Länkar
-För att hitta länken som du skriver in i stället för `<path to folder>` och i `data-url` kan du använda instruktionerna som finns i filen [README.md](../../README.md#att-länka-kod) i projektets root-mapp (huvudmappen). 
+För att hitta länken som du skriver in i stället för `<path to folder>` och i `data-url` kan du använda instruktionerna som finns i filen README.md i projektets root-mapp (huvudmappen) om att [Länka kod](../../README.md#att-länka-till-kodbibliotek) och att [Länka data](../../README.md#att-länka-till-data). 
