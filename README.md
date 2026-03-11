@@ -2,7 +2,7 @@
 Detta repo innehåller kod som används på våran hemsida nygeneration.se. Här sparas all kod och data som används på hemsidan. 
 
 ## Filstruktur kodbibliotek
-Alla kodfiler fins under mappen `docs/` under branchen `main` och följer följande struktur:
+Alla kodfiler finns under mappen `docs/` under branchen `main` och följer följande struktur:
 
 ```text
 docs/ (branch: main)
@@ -19,12 +19,12 @@ docs/ (branch: main)
 
 ### Filen `index.html`
 ---
-Denna fil innehåller lite info om sidan och vart all kod fins.
+Denna fil innehåller lite info om sidan och vart all kod finns.
 
 
 ### Filen `preview.html`
 ---
-Denna fil innehåller en preview av varje egengjort element (som är fristående och inte kräver andra element från en squarespace sida). Denna bör länka till produktionskoden i biblioteken. 
+Denna fil innehåller en preview av varje egengjort element (som är fristående och inte kräver andra element från en squarespace sida). I den här filen bör du länka till produktionskoden i biblioteken (inte koden i `dev/`). 
 
 
 ### Mappen `<code-library-name>/`
@@ -35,7 +35,7 @@ Mappen `dev/` används när man utvecklar/ändrar verktyget. Dessa filer kan man
 
 
 ## Att länka till kodbibliotek
-Alla filer i `docs/` mappen publiceras på en webserver med `github pages`. Du kommer åt filerna i den mappen genom att gå in på länken nedan följt av sökvägen för filen. 
+Alla filer i `docs/` mappen publiceras på en webserver med `github pages`. Du kommer åt filerna i den mappen med hjälp av länken nedan där du byter ut `<path to file>` mot filens sökväg. 
 
 `https://nygenerati0n.github.io/webpage-utils/<path to file>`
 
@@ -46,25 +46,25 @@ Om du ska hämta filen `script.js` i kodbiblioteket `exempel-projekt` för en si
 
 `https://nygenerati0n.github.io/webpage-utils/exempel-projekt/script.js`
 
-Och om du ska hämta samma kod men för att testa den i en squarespace-sida för debugging som inte syns för anävndarna blir länken istället:
+Och om du ska hämta samma fil men för att testa den i en squarespace-sida för debugging som inte syns för anävndarna blir länken istället:
 
 `https://nygenerati0n.github.io/webpage-utils/exempel-projekt/dev/script.js`
 
 
 
 ## Data
-All data som används av hemsidan finns sparat i branchen `data-storage`. Den branchen har för tillfället ingen struktur utan alla filer finns i root-mappen. 
+All data som används av hemsidan finns sparad i branchen `data-storage`. Den branchen har för tillfället ingen struktur utan alla filer finns i root-mappen. 
 
 ## Att länka till data
-För att länka till data på hemsidan använder du githubs raw länkar. Detta gör du genom att öppna filen i github och klicka på att visa den som raw. 
+För att länka till data på hemsidan använder du githubs raw länkar. Det gör du genom att öppna filen i github och klicka på att visa den som raw. 
 
-Alternativt kan du använda länken nedan och byta ut `<filepath>` mot namnet på filen du vill komma åt. Detta fungerar så länge filen ligger i root-mappen (inte ligger i en mapp i repon). Gör dendet behöver du lägga till hela filsökvägen.
+Alternativt kan du använda länken nedan och byta ut `<filepath>` mot namnet på filen du vill komma åt. Detta fungerar så länge filen ligger i root-mappen (inte ligger i en mapp i repon). Ligger filen istället i en sub-map behöver du lägga till hela filsökvägen.
 
 `https://raw.githubusercontent.com/NyGenerati0n/webpage-utils/refs/heads/data-storage/<filepath>`
 
 
 ## Utveckling och `git`
-För att ladda upp koden till github brukar man använda programmet `git`. Om du inte vet hur det fungerar rekomenderar jag dig att lära dig grunderna för det underlättar mycket. Du kan också använda text-redigerare som `vscode` eller liknande för att underlätta när du kodar. 
+För att ladda upp koden till github brukar man använda programmet `git`. Om du inte vet hur det fungerar rekomenderar jag dig att lära dig grunderna för det underlättar mycket när man uppdaterar koden. Du kan också använda text-redigerare som `vscode` eller liknande för att underlätta när du kodar och `vscode` har ett inbyggt system för att hantera git commandon. 
 
 Här är en quickstart för att använda `git` i `vscode`: [vscode quickstart](https://code.visualstudio.com/docs/sourcecontrol/quickstart)
 
@@ -72,4 +72,4 @@ Ett tips är att commita så mycket som möjligt, så fort du gjort en meningsfu
 
 Om du vill lära dig mer är att använda branchess. Det finns en beskrivning på vad det är och hur du använder det här: [vscode branches](https://code.visualstudio.com/docs/sourcecontrol/branches-worktrees)
 
-***`OBS!`*** branches är nödvändigt att lära sig om när flera personer ska jobba på koden samtidigt, även om man jobbar på olika verktyg (det vill säga när man jobbar på samma repository).
+***`OBS!`*** branches är nödvändigt att lära sig om flera personer ska jobba på koden samtidigt, även om man jobbar på olika verktyg (det vill säga när man jobbar på samma repo).
