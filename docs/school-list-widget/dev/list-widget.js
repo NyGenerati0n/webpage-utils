@@ -17,16 +17,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!container) continue;
 
     const url = container.getAttribute('data-url');
+    const follow = container.getAttribute('data-follow-container') === "true";
 
     // Initiera widget
-    initSchoolList(container, url);
+    initSchoolList(container, url, follow);
   }
 });
 
-async function initSchoolList(target, url) {
+async function initSchoolList(target, url, follow) {
   // ====== Build Widget ======
   const { EL_SEARCH_INPUT } = buildLayout(target);
   target.className = "list-widget-container"
+  if(follow)
+    target.className = "list-widget-container-follow"
 
   // ====== Target-specifik variables ======
   const STATE = {
