@@ -15,7 +15,7 @@ Så här lägger du till koden på en squarespace-sida:
 2. Lägg in denna kod i ett kodblock på hemsidan där du vill ha listan:
 
 ```html
-<div data-school-app="true" data-url="<url till data>">
+<div data-school-app="true" data-follow-container="true|false" data-data-url="<url till data>">
     Laddar skolor...
 </div>
 
@@ -23,6 +23,8 @@ Så här lägger du till koden på en squarespace-sida:
 ```
 
 `data-school-app="true"` talar om för skriptet att detta element ska användas som wrapper till listan. 
+
+`data-follow-container="true|false"` talar om för skriptet om listan ska fylla hela des container. Om `true` så kan man ändra storlek i squarespace genom att ändra storlek på code-blocket. Om `false` kan du ändra stylingen själv med klassen `.list-widget-container`. 
 
 `data-url` är länken till data som ska visas (dvs alla skolor och skolgrupper). 
 
