@@ -92,6 +92,7 @@
     flex-direction: column;
     height: 500px;
     overflow-y: scroll;
+    /* flex: 1; */
 }
 
 .list-widget-school-card {
