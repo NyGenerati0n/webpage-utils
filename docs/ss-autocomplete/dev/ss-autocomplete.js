@@ -331,10 +331,24 @@
     items.forEach((item, idx) => {
       const div = document.createElement("div");
       div.className = "ssac-item";
-      div.textContent = item.label;
       div.setAttribute("role", "option");
       div.setAttribute("aria-selected", idx === activeIndex ? "true" : "false");
       div.dataset.ssacIndex = String(idx);
+
+      // --- Status-indikator ---
+      if (item.statusColor) {
+        const dot = document.createElement("span");
+        dot.className = "ssac-status-dot";
+        if (item.statusColor.outer) dot.style.borderColor = item.statusColor.outer;
+        if (item.statusColor.inner) dot.style.backgroundColor = item.statusColor.inner;
+        div.appendChild(dot);
+      }
+
+      // Vi lägger själva texten i en span för att flexbox ska fungera smidigt
+      const labelSpan = document.createElement("span");
+      labelSpan.textContent = item.label;
+      div.appendChild(labelSpan);
+
       panel.appendChild(div);
     });
   }
@@ -826,6 +840,18 @@
     return target;
   }
 
+  // ---------- Predefined Status Colors ----------
+  const STATUS_COLORS = {
+    green:  { inner: "#27ae60", outer: "rgba(39, 174, 96, 0.3)" },
+    red:    { inner: "#eb4d4b", outer: "rgba(235, 77, 75, 0.3)" },
+    orange: { inner: "#f39c12", outer: "rgba(243, 156, 18, 0.3)" },
+    blue:   { inner: "#2980b9", outer: "rgba(41, 128, 185, 0.3)" },
+    gray:   { inner: "#95a5a6", outer: "rgba(149, 165, 166, 0.3)" }
+  };
+
   // Export
-  global.SSAutocomplete = { init };
+  global.SSAutocomplete = { 
+    init,
+    STATUS_COLORS 
+  };
 })(window);
