@@ -61,8 +61,8 @@
 
 .ssac-status-dot {
   display: inline-block;
-  width: 10px;
-  height: 10px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   border: 2px solid transparent;
   background-color: transparent;

@@ -842,11 +842,11 @@
 
   // ---------- Predefined Status Colors ----------
   const STATUS_COLORS = {
-    green:  { inner: "#27ae60", outer: "rgba(39, 174, 96, 0.3)" },
-    red:    { inner: "#eb4d4b", outer: "rgba(235, 77, 75, 0.3)" },
-    orange: { inner: "#f39c12", outer: "rgba(243, 156, 18, 0.3)" },
-    blue:   { inner: "#2980b9", outer: "rgba(41, 128, 185, 0.3)" },
-    gray:   { inner: "#95a5a6", outer: "rgba(149, 165, 166, 0.3)" }
+    green:  { inner: "#27ae60", outer: "#0a7c3a" },
+    red:    { inner: "#eb4d4b", outer: "#b11715" },
+    orange: { inner: "#f39c12", outer: "#bd7809" },
+    blue:   { inner: "#2980b9", outer: "#0e5687" },
+    gray:   { inner: "#95a5a6", outer: "#6f7c7c" }
   };
 
   // Export
