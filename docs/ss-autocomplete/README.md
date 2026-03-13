@@ -8,12 +8,12 @@ Biblioteket har fullt stöd för asynkron data (via Fetch), komplex villkorlig l
 
 ## 📦 Installation
 
-1. Gå till **Settings > Advanced > Code Injection > Footer** och lägg till följande:
+Gå till **Settings > Advanced > Code Injection > Footer** och lägg till följande:
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
 
-<link rel="stylesheet" href="<path to folder>/ss-autocomplete.css">
+<link rel="stylesheet" href="<path to folder>/<style-theme>.css">
 <script src="<path to folder>/ss-autocomplete.js"></script>
 
 <script>
@@ -25,6 +25,11 @@ Biblioteket har fullt stöd för asynkron data (via Fetch), komplex villkorlig l
 </script>
 ```
 
+### Färgteman
+För styling kan du välja några olika teman. Varje tema har sin egen css-fil. Importera den filen som innehåller det temat du vill använda. Exempel på vad du kan skriva istället för `<style-theme>`:
+- ss-autocomplete-gray
+- ss-autocomplete-orange
+
 ### Installation via Code Block (om Footer Injection saknas)
 Om du inte har tillgång till global *Code Injection* (t.ex. på Squarespace Personal-planen), kan du istället använda ett **Code Block** direkt på sidan där formuläret finns.
 
@@ -32,7 +37,7 @@ Om du inte har tillgång till global *Code Injection* (t.ex. på Squarespace Per
 2. Klistra in följande kod (se till att "HTML" är valt och "Display Source" är avstängt):
 
 ```html
-<link rel="stylesheet" href="<path to folder>/ss-autocomplete.css">
+<link rel="stylesheet" href="<path to folder>/ss-autocomplete-orange.css">
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
 
 <script src="<path to folder>/ss-autocomplete.js"></script>
@@ -127,7 +132,7 @@ Varje objekt i `fields`-arrayen styr ett specifikt fält.
 | **`data`** | `array` | En statisk array med objekt som ska sökas igenom. *(Högst prioritet)* |
 | **`dataUrl`** | `string` | En URL för att hämta JSON-data asynkront via `fetch`. |
 | **`listPath`** | `string` | Om API-svaret är nästlat (t.ex. `"data.schools"`), anger du sökvägen till arrayen här. |
-| **`mapItem`** | `function` | Formaterar inkommande data till `{ id, label }`. |
+| **`mapItem`** | `function` | Formaterar inkommande data till `{ id, label, statusColor (optional) }`. |
 | **`filterItem`** | `function` | Filtrerar bort objekt från listan innan de görs sökbara. |
 
 ### 3. Inskickning (Submit)
@@ -205,6 +210,52 @@ Ett vanligt scenario: Om användaren kryssar i "Skolan finns inte i listan", fö
 
 ---
 
+## 🟢 Statusindikatorer
+
+Du kan lägga till en rund färgmarkering (statusindikator) till vänster om varje val i listan. Detta är perfekt för att snabbt visualisera om till exempel en skolgrupp är aktiv eller inte. 
+
+Biblioteket har ett antal fördefinierade färger som är färdiga att användas via det globala objektet `SSAutocomplete.STATUS_COLORS`:
+* `green`
+* `red`
+* `orange`
+* `blue`
+* `gray`
+
+### Användning
+För att aktivera indikatorn returnerar du egenskapen `statusColor` i din `mapItem`-funktion. Om `statusColor` utelämnas eller sätts till `null` ritas ingen indikator ut.
+
+**Exempel:**
+```javascript
+SSAutocomplete.init({
+  fields: [
+    {
+      targetLabel: "Välj Utbildning",
+      data: [
+        { id: "101", name: "Webbutveckling", status: "open" },
+        { id: "102", name: "Systemdesign", status: "closed" }
+      ],
+      mapItem: (item) => {
+        // Mappa din data till en färg
+        let color = null;
+        if (item.status === "open") color = SSAutocomplete.STATUS_COLORS.green;
+        if (item.status === "closed") color = SSAutocomplete.STATUS_COLORS.red;
+
+        return {
+          id: item.id,
+          label: item.name,
+          statusColor: color // Applicera färgen här
+        };
+      }
+    }
+  ]
+});
+```
+
+> **💡 Tips för egna färger:** > Vill du använda en helt egen färg som inte finns i `STATUS_COLORS`? Du kan skicka in ett anpassat objekt med en inre (`inner`) och yttre (`outer`) färgkod direkt:
+> `statusColor: { inner: "#9b59b6", outer: "rgba(155, 89, 182, 0.3)" }`
+
+---
+
 ## 🎨 Styling
 
 SSAutocomplete är byggt för att ärva så mycket som möjligt från ditt Squarespace-tema (font, padding, borders på input-fältet). För dropdown-menyn injiceras några enkla klasser som du fritt kan skriva över i **Design > Custom CSS**.
@@ -213,3 +264,4 @@ SSAutocomplete är byggt för att ärva så mycket som möjligt från ditt Squar
 * `.ssac-item`: Varje enskilt resultat.
 * `.ssac-item[aria-selected="true"]`: Resultatet som just nu är markerat.
 * `.ssac-muted`: Tomt tillstånd (t.ex. texten "Inga träffar").
+* `.ssac-status-dot`: Grundläggande styling för indikatorerna. 
