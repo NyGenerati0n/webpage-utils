@@ -215,21 +215,17 @@ function buildLayout(target) {
   const EL_SEARCH_CONTAINER = createDiv("list-widget-search-container");
   const EL_INPUT_CONTAINER = createDiv("list-widget-search-input-container");
   const EL_SEARCH_INPUT = createTextInput("list-widget-search-input", SEARCH_PLACEHOLDER_TEXT);
-  const EL_SEARCH_BUTTON = createDiv("list-widget-search-button");
+  const EL_SEARCH_BUTTON = createDiv("list-widget-search-icon");
   const EL_SEARCH_BUTTON_IMG = createImg("img/magnifying-glass-icon.png", "list-widget-image");
-  const EL_FILTER_BUTTON = createDiv("list-widget-search-filter-button");
-  const EL_FILTER_BUTTON_IMG = createImg("img/filter-icon.png", "list-widget-image");
   const EL_LIST_CONTAINER = createDiv("list-widget-schools-container");
 
 
   EL_SEARCH_CONTAINER.appendChild(EL_INPUT_CONTAINER);
-  EL_SEARCH_CONTAINER.appendChild(EL_FILTER_BUTTON);
 
-  EL_INPUT_CONTAINER.appendChild(EL_SEARCH_INPUT);
   EL_INPUT_CONTAINER.appendChild(EL_SEARCH_BUTTON);
+  EL_INPUT_CONTAINER.appendChild(EL_SEARCH_INPUT);
 
   EL_SEARCH_BUTTON.appendChild(EL_SEARCH_BUTTON_IMG);
-  EL_FILTER_BUTTON.appendChild(EL_FILTER_BUTTON_IMG);
 
   target.appendChild(EL_SEARCH_CONTAINER);
   target.appendChild(EL_LIST_CONTAINER);
@@ -239,10 +235,6 @@ function buildLayout(target) {
   EL_SEARCH_BUTTON_IMG.setAttribute('no-drag', 'on');
   EL_SEARCH_BUTTON_IMG.setAttribute('draggable', 'false');
   EL_SEARCH_BUTTON_IMG.addEventListener('dragstart', e => e.preventDefault(), false);
-  
-  EL_FILTER_BUTTON_IMG.setAttribute('no-drag', 'on');
-  EL_FILTER_BUTTON_IMG.setAttribute('draggable', 'false');
-  EL_FILTER_BUTTON_IMG.addEventListener('dragstart', e => e.preventDefault(), false);
 
 
   // Build temporary cards with loading animation
@@ -250,7 +242,7 @@ function buildLayout(target) {
     EL_LIST_CONTAINER.appendChild(buildSchoolCardLoadingPlaceholder());
   }
 
-  return { EL_SEARCH_INPUT, EL_SEARCH_BUTTON, EL_FILTER_BUTTON, EL_LIST_CONTAINER }
+  return { EL_SEARCH_INPUT, EL_SEARCH_BUTTON, EL_LIST_CONTAINER }
 }
 
 

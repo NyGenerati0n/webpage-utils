@@ -1,0 +1,19 @@
+.list-widget-search-button {
+    background-color: rgb(217, 217, 217);
+    border: 2px solid rgb(171, 171, 171);
+}
+
+
+.list-widget-search-filter-button {
+    background-color: rgb(217, 217, 217);
+    border: 2px solid rgb(171, 171, 171);
+    margin-left: 10px;
+}
+
+.list-widget-search-filter-button,
+.list-widget-search-button {
+    height: 1rem;
+    padding: 7px;
+    border-radius: 50%;
+    cursor: pointer;
+}
