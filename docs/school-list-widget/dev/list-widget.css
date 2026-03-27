@@ -97,10 +97,10 @@
     display: flex;
     align-items: center;
     margin-bottom: 3px;
+    color: #FD652D;
 }
 
 .list-widget-school-card-info-name {
-    color: #FD652D;
 }
 
 .list-widget-school-card-info {
