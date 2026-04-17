@@ -98,9 +98,11 @@
     align-items: center;
     margin-bottom: 3px;
     color: #FD652D;
+    width: 100%;
 }
 
 .list-widget-school-card-info-name {
+    margin-right: 10px;
 }
 
 .list-widget-school-card-info {
@@ -143,6 +145,13 @@
 .list-widget-school-card-group-indicator.list-widget-inactive {
     background-color: red;
     border-color: rgb(175, 0, 0);
+}
+
+
+.list-widget-school-card-active-indicator-img {
+    height: 1.3rem;
+    margin: 2px;
+    margin-left: auto;
 }
 
 
