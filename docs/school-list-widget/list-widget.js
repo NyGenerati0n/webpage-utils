@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function initSchoolList(target, url, follow) {
   // ====== Build Widget ======
-  const { EL_SEARCH_INPUT } = buildLayout(target);
+  const { EL_SEARCH_INPUT, EL_LIST_CONTAINER } = buildLayout(target);
   target.className = "list-widget-container"
   if(follow)
     target.className = "list-widget-container-follow"
@@ -57,6 +57,8 @@ async function initSchoolList(target, url, follow) {
       displayData(SCHOOLS_UNFILTERED)
     else
       displayData(FUSE.search(EL_SEARCH_INPUT.value).map(el => el.item));
+    
+    EL_LIST_CONTAINER.scrollTo(0, 0);
   })
   
   // ====== Target-specifik functions ======
@@ -172,6 +174,7 @@ function buildSchoolCard(school) {
   const info = createDiv("list-widget-school-card-info");
   const type = createDiv("list-widget-school-card-info-type", school.type);
   const city = createDiv("list-widget-school-card-info-city", school.adress.city);
+  const fire_img = !school.isActive? null : createImg("img/fire.svg", "list-widget-school-card-active-indicator-img")
 
   
   container.appendChild(title);
@@ -179,6 +182,8 @@ function buildSchoolCard(school) {
 
   title.appendChild(indicator);
   title.appendChild(name);
+  if(fire_img)
+    title.appendChild(fire_img);
 
   info.appendChild(type);
   info.appendChild(city);
