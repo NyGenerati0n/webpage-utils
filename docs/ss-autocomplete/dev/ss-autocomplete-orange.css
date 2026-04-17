@@ -69,8 +69,15 @@
   flex-shrink: 0;
 }
 
-.ssac-status-image {
+.ssac-status-container {
   margin-left: auto;
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  align-items: center;
+}
+
+.ssac-status-image {
   height: 1.2rem;
   object-fit: contain;
   flex-shrink: 0;
