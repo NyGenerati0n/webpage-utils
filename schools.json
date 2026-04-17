@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-04-17T08:16:43.094Z",
-  "syncedAt": "2026-04-17T01:26:58.891Z",
+  "generatedAt": "2026-04-17T08:35:25.390Z",
+  "syncedAt": "2026-04-17T08:35:16.997Z",
   "schools": [
     {
       "id": "001P700000Bp763IAB",
@@ -3539,20 +3539,6 @@
       "groups": []
     },
     {
-      "id": "001P700000Bp76uIAB",
-      "name": "John Bauer",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Nygatan 30",
-        "city": "KALMAR",
-        "postalCode": 39234,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
       "id": "001P700000Bp76vIAB",
       "name": "Astradskolan (F-9)",
       "type": "Övre grundskola (7-9)",
@@ -6178,20 +6164,6 @@
         "street": "S:ta Helenagatan 8",
         "city": "SKÖVDE",
         "postalCode": 54130,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000Bp977IAB",
-      "name": "Fornängsskolan (7-9)",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Skolgatan 4",
-        "city": "GÖTENE",
-        "postalCode": 53331,
         "country": "Sverige",
         "countryCode": "SE"
       },
@@ -19219,20 +19191,6 @@
       "groups": []
     },
     {
-      "id": "001P700000BpDaeIAF",
-      "name": "Djäkneskolan 7-9",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Södra Kyrkogatan 2",
-        "city": "SKARA",
-        "postalCode": 53230,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
       "id": "001P700000BpDafIAF",
       "name": "JENSEN Gymnasium Uppsala",
       "type": "Gymnasium",
@@ -21935,20 +21893,6 @@
       "groups": []
     },
     {
-      "id": "001P700000BpFAFIA3",
-      "name": "Själevadsskolan ÖVIK",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Örnsköldsvik",
-        "city": "ÖRNSKÖLDSVIK",
-        "postalCode": "",
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
       "id": "001P700000BpFAGIA3",
       "name": "Åsenskolan (6-9)",
       "type": "Övre grundskola (7-9)",
@@ -22138,20 +22082,6 @@
         "street": "Marmav.  12",
         "city": "ALUNDA",
         "postalCode": 74730,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BpFAXIA3",
-      "name": "Älvkullegymnasiet",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Sundstavägen 27",
-        "city": "KARLSTAD",
-        "postalCode": 65463,
         "country": "Sverige",
         "countryCode": "SE"
       },
@@ -23223,20 +23153,6 @@
       "groups": []
     },
     {
-      "id": "001P700000BpFVYIA3",
-      "name": "John Bauer",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Risbergsg.  4",
-        "city": "SKELLEFTEÅ",
-        "postalCode": 93136,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
       "id": "001P700000BpFVZIA3",
       "name": "Prolympia Friskola VIRSERUM",
       "type": "Övre grundskola (7-9)",
@@ -23524,20 +23440,6 @@
         "street": "Stubbåkersgatan",
         "city": "GÖTEBORG",
         "postalCode": 43144,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BpFVwIAN",
-      "name": "Varbergs praktiska gymnasium",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Birger Svenssons väg  40",
-        "city": "VARBERG",
-        "postalCode": 4324,
         "country": "Sverige",
         "countryCode": "SE"
       },
@@ -26877,20 +26779,6 @@
       "groups": []
     },
     {
-      "id": "001P700000BpGzOIAV",
-      "name": "Risbergska Skolan",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Hagagatan 53",
-        "city": "ÖREBRO",
-        "postalCode": 70135,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
       "id": "001P700000BpGzRIAV",
       "name": "Östervåla skola",
       "type": "Övre grundskola (7-9)",
@@ -29334,20 +29222,6 @@
         "street": "Gillbergavägen  5",
         "city": "ESKILSTUNA",
         "postalCode": 63228,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BpH3DIAV",
-      "name": "Kaplanskolan",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Skolvägen  2",
-        "city": "SKELLEFTEÅ",
-        "postalCode": 93144,
         "country": "Sverige",
         "countryCode": "SE"
       },
@@ -38357,20 +38231,6 @@
       "groups": []
     },
     {
-      "id": "001P700000BpHK5IAN",
-      "name": "Donnergymnasiet Klintehamn",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Donnersgatan 50 A",
-        "city": "KLINTEHAMN",
-        "postalCode": 62020,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
       "id": "001P700000BpHK8IAN",
       "name": "Elajo Technical Education Center",
       "type": "Gymnasium",
@@ -39351,20 +39211,6 @@
       "groups": []
     },
     {
-      "id": "001P700000BpHLuIAN",
-      "name": "JENSEN Gymnasium Borås",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Bryggaregatan 12",
-        "city": "BORÅS",
-        "postalCode": 50338,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
       "id": "001P700000BpHLwIAN",
       "name": "Klaragymnasiet",
       "type": "Gymnasium",
@@ -39456,20 +39302,6 @@
         "street": "Klockvägen 1",
         "city": "MUNKEDAL",
         "postalCode": 45530,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BpHM3IAN",
-      "name": "Kungsängsskolan 7-9",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Kungsängsvägen 10",
-        "city": "JÖNKÖPING",
-        "postalCode": 55456,
         "country": "Sverige",
         "countryCode": "SE"
       },
@@ -49235,20 +49067,6 @@
       "groups": []
     },
     {
-      "id": "001P700000BpHgnIAF",
-      "name": "Karlbergsskolan åk 7-9 KARLSKOGA",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Flygfältsvägen 12 -",
-        "city": "KARLSKOGA",
-        "postalCode": 69183,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
       "id": "001P700000BpHgoIAF",
       "name": "Karlslunds skola",
       "type": "Övre grundskola (7-9)",
@@ -53379,34 +53197,6 @@
       "groups": []
     },
     {
-      "id": "001P700000BpHnCIAV",
-      "name": "Christopher Polhem gymnasium VISBY",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "N. Hansegatan 16 A",
-        "city": "VISBY",
-        "postalCode": 62142,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BpHnDIAV",
-      "name": "Elfrida Andréegymnasiet",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Sävesvägen 10",
-        "city": "VISBY",
-        "postalCode": 62146,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
       "id": "001P700000BpHnEIAV",
       "name": "Brinellskolan, Fagersta",
       "type": "Gymnasium",
@@ -53498,20 +53288,6 @@
         "street": "Batterigatan 19",
         "city": "JÖNKÖPING",
         "postalCode": 55305,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BpHnLIAV",
-      "name": "Richard Steffengymnasiet",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Säves väg  10",
-        "city": "VISBY",
-        "postalCode": 62182,
         "country": "Sverige",
         "countryCode": "SE"
       },
@@ -55948,20 +55724,6 @@
         "street": "Teknikringen 1",
         "city": "STOCKHOLM",
         "postalCode": 11428,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BpHrrIAF",
-      "name": "Plusgymnasiet",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Skeppsgatan   12",
-        "city": "VARBERG",
-        "postalCode": 43244,
         "country": "Sverige",
         "countryCode": "SE"
       },
@@ -62066,580 +61828,6 @@
         "street": "Wendesvägen 1",
         "city": "HÄSSLEHOLM",
         "postalCode": 28152,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtD9bIAF",
-      "name": "John Bauer gymnasiet",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Kyrkog.  3",
-        "city": "SUNDSVALL",
-        "postalCode": 85231,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtD9cIAF",
-      "name": "Västerbyskolan 7-9",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Hagagatan  10",
-        "city": "GÖTENE",
-        "postalCode": 53332,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtD9dIAF",
-      "name": "Fässbergsgymnasiet",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Fiskargatan  4",
-        "city": "MÖLNDAL",
-        "postalCode": 43143,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtD9eIAF",
-      "name": "Mogärdeskolan",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Kullgatan  5",
-        "city": "VETLANDA",
-        "postalCode": 57431,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtD9fIAF",
-      "name": "Esaias Tegnér",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Lineborgsplan  11",
-        "city": "VÄXJÖ",
-        "postalCode": 35105,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtD9gIAF",
-      "name": "John Bauergymnasiet",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Vallgatan 4",
-        "city": "VÄRNAMO",
-        "postalCode": 33124,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtD9hIAF",
-      "name": "Bäckadalsskolan",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "",
-        "city": "VALDEMARSVIK",
-        "postalCode": "",
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtD9iIAF",
-      "name": "Floristgymnasiet",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Utställningsvägen  24",
-        "city": "NORRKÖPING",
-        "postalCode": 60236,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtD9jIAF",
-      "name": "Palmcrantzskolan",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Tegelbruksvägen 36",
-        "city": "ÖSTERSUND",
-        "postalCode": 83124,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtD9kIAF",
-      "name": "Centralskolan",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Mimers väg 2",
-        "city": "STAFFANSTORP",
-        "postalCode": 24532,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtD9lIAF",
-      "name": "John Bauergymnasiet",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Dragsgatan 7",
-        "city": "NORRKÖPING",
-        "postalCode": 60219,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtD9mIAF",
-      "name": "Växjö Design och konstskola",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Bäckgatan 16",
-        "city": "VÄXJÖ",
-        "postalCode": 35231,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtD9nIAF",
-      "name": "Marielundsgymnasiet",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Stockholmsv.  35",
-        "city": "NORRKÖPING",
-        "postalCode": 60217,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtD9oIAF",
-      "name": "Östra Akademin VÄSTERVIK",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Norra Bangatan 2",
-        "city": "VÄSTERVIK",
-        "postalCode": 59331,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtD9pIAF",
-      "name": "Gymnasieskolan Galären",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Kungsbron 5",
-        "city": "KARLSKRONA",
-        "postalCode": 37131,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtD9qIAF",
-      "name": "John Bauergymnasiet",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Orrholmsgatan  4",
-        "city": "KARLSTAD",
-        "postalCode": 65226,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtD9rIAF",
-      "name": "John Bauer gymnasiet",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Kaserngatan  12",
-        "city": "JÖNKÖPING",
-        "postalCode": 55305,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtD9sIAF",
-      "name": "Vilunda Gymnasium",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Drabantvägen 7 A",
-        "city": "UPPLANDS VÄSBY",
-        "postalCode": 19433,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtD9tIAF",
-      "name": "John Bauergymnasiet",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Kasternvägen, byggnad 2 3",
-        "city": "ÖSTERSUND",
-        "postalCode": "",
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtD9uIAF",
-      "name": "SAM-gymnasiet",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Mälarvägen 2",
-        "city": "JÄRFÄLLA",
-        "postalCode": 17742,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtD9vIAF",
-      "name": "Prolympia VÄRNAMO",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Boagatan 2",
-        "city": "VÄRNAMO",
-        "postalCode": 33130,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtD9wIAF",
-      "name": "Folkuniversitetet",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "S:t Larsgatan 44",
-        "city": "LINKÖPING",
-        "postalCode": 58104,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtD9xIAF",
-      "name": "Mariaskolan MARIESTAD",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Blombackagatan 16",
-        "city": "MARIESTAD",
-        "postalCode": 54233,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtD9yIAF",
-      "name": "John Bauergymnasiet",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Årstaängsvägen 33",
-        "city": "STOCKHOLM",
-        "postalCode": 11743,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtD9zIAF",
-      "name": "Teknikgymnasiet",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "västergatan 4",
-        "city": "SÖDERTÄLJE",
-        "postalCode": 15145,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtDA0IAN",
-      "name": "Carl Adolph Agardhgymnasiet",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Rapsvägen 5",
-        "city": "LUND",
-        "postalCode": 22002,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtDA1IAN",
-      "name": "EC Gymnasieskola i Svängsta",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Öjavadsvägen 2",
-        "city": "SVÄNGSTA",
-        "postalCode": 37636,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtDA2IAN",
-      "name": "Vittra i Östersund",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Biblioteksgatan 6",
-        "city": "ÖSTERSUND",
-        "postalCode": 83130,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtDA3IAN",
-      "name": "Bergaskolan F-6",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Tingshusgatan 1",
-        "city": "SÖDERKÖPING",
-        "postalCode": 61434,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtDA4IAN",
-      "name": "Folkuniversitetets Internationella gymnasium",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Kungsgatan 33",
-        "city": "LINKÖPING",
-        "postalCode": 58104,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtDA5IAN",
-      "name": "Gärdesskolan",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Läroverksgatan 39",
-        "city": "BOLLNÄS",
-        "postalCode": 82133,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtDA6IAN",
-      "name": "John Bauergymnasiet",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Utmarksvägen 33 C",
-        "city": "GÄVLE",
-        "postalCode": 80133,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtDA7IAN",
-      "name": "G.O. Kompetens Transportgymnasium Helsingborg ?",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "BOX 7124",
-        "city": "HELSINGBORG",
-        "postalCode": 25007,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtDA8IAN",
-      "name": "Tegnérgymnasiet/Folkuniv.",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Lineborgsplan 11",
-        "city": "VÄXJÖ",
-        "postalCode": 35105,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtDA9IAN",
-      "name": "John Bauergymnasiet",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Älvsborgsgatan 4",
-        "city": "BORÅS",
-        "postalCode": 50430,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtDAAIA3",
-      "name": "NTI-gymnasiet Borås",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "BOX AB,",
-        "city": "BORÅS",
-        "postalCode": 10262,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtDABIA3",
-      "name": "Naturbruksgymnasiet Älvdalen",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Buskoviusvägen 7",
-        "city": "ÄLVDALEN",
-        "postalCode": 79622,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtDACIA3",
-      "name": "John Bauergymnasiet",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Kasergården 6 A",
-        "city": "UDDEVALLA",
-        "postalCode": 45134,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtDADIA3",
-      "name": "Folkuniversitetets gymnasium i Skövde",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Regementsgatan 7",
-        "city": "SKÖVDE",
-        "postalCode": 54146,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtDAEIA3",
-      "name": "Karl-Oskarskolan",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Skolgatan  1",
-        "city": "ÄLMHULT",
-        "postalCode": 34323,
-        "country": "Sverige",
-        "countryCode": "SE"
-      },
-      "isActive": false,
-      "groups": []
-    },
-    {
-      "id": "001P700000BtDAFIA3",
-      "name": "John Bauer Gymnasiet",
-      "type": "Nedlagd",
-      "adress": {
-        "street": "Stubbåkersgatan 21",
-        "city": "MÖLNDAL",
-        "postalCode": 43144,
         "country": "Sverige",
         "countryCode": "SE"
       },
