@@ -279,6 +279,8 @@ mapItem: (item) => {
 }
 ```
 
+> Texten skärmläsaren läser när den läser upp statusen är `(Status: ${item.statusText})`
+
 ---
 
 ## 🎨 Styling
