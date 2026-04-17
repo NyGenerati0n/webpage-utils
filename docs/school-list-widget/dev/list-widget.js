@@ -172,6 +172,7 @@ function buildSchoolCard(school) {
   const info = createDiv("list-widget-school-card-info");
   const type = createDiv("list-widget-school-card-info-type", school.type);
   const city = createDiv("list-widget-school-card-info-city", school.adress.city);
+  const fire_img = !school.isActive? null : createImg("img/fire.svg", "list-widget-school-card-active-indicator-img")
 
   
   container.appendChild(title);
@@ -179,6 +180,8 @@ function buildSchoolCard(school) {
 
   title.appendChild(indicator);
   title.appendChild(name);
+  if(fire_img)
+    title.appendChild(fire_img);
 
   info.appendChild(type);
   info.appendChild(city);
