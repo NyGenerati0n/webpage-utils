@@ -349,6 +349,32 @@
       labelSpan.textContent = item.label;
       div.appendChild(labelSpan);
 
+      // --- Bilder till höger ---
+      if (item.statusImages && Array.isArray(item.statusImages)) {
+        // Vi skapar en behållare för att hålla ikonerna samlade
+        const imgContainer = document.createElement("div");
+        imgContainer.className = "ssac-status-container";
+        
+        item.statusImages.forEach(imgUrl => {
+          const img = document.createElement("img");
+          img.src = imgUrl;
+          img.className = "ssac-status-image";
+          img.alt = ""; 
+          img.setAttribute("aria-hidden", "true");
+          imgContainer.appendChild(img);
+        });
+        
+        div.appendChild(imgContainer);
+      }
+
+      // --- Tillgänglighet (Dold text för skärmläsare) ---
+      if (item.statusText) {
+        const srSpan = document.createElement("span");
+        srSpan.className = "ssac-sr-only";
+        srSpan.textContent = ` (Status: ${item.statusText})`;
+        div.appendChild(srSpan);
+      }
+
       panel.appendChild(div);
     });
   }
