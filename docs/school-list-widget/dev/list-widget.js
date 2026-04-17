@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function initSchoolList(target, url, follow) {
   // ====== Build Widget ======
-  const { EL_SEARCH_INPUT } = buildLayout(target);
+  const { EL_SEARCH_INPUT, EL_LIST_CONTAINER } = buildLayout(target);
   target.className = "list-widget-container"
   if(follow)
     target.className = "list-widget-container-follow"
@@ -57,6 +57,8 @@ async function initSchoolList(target, url, follow) {
       displayData(SCHOOLS_UNFILTERED)
     else
       displayData(FUSE.search(EL_SEARCH_INPUT.value).map(el => el.item));
+    
+    EL_LIST_CONTAINER.scrollTo(0, 0);
   })
   
   // ====== Target-specifik functions ======
