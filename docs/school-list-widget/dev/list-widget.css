@@ -166,6 +166,7 @@
     background-color: rgb(204, 204, 205);
     color: rgb(204, 204, 205);
     border-radius: 5px;
+    width: unset;
 
     animation: ease-in-out list-widget-card-loading-animation 2s;
     animation-iteration-count: infinite;
