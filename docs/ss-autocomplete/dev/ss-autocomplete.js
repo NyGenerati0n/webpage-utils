@@ -349,6 +349,24 @@
       labelSpan.textContent = item.label;
       div.appendChild(labelSpan);
 
+      // --- Bild till höger ---
+      if (item.statusImage) {
+        const img = document.createElement("img");
+        img.src = item.statusImage;
+        img.className = "ssac-status-image";
+        img.alt = ""; // Lämna tom! Skärmläsare hanteras av texten nedan
+        img.setAttribute("aria-hidden", "true");
+        div.appendChild(img);
+      }
+
+      // --- Tillgänglighet (Dold text för skärmläsare) ---
+      if (item.statusText) {
+        const srSpan = document.createElement("span");
+        srSpan.className = "ssac-sr-only";
+        srSpan.textContent = ` (Status: ${item.statusText})`;
+        div.appendChild(srSpan);
+      }
+
       panel.appendChild(div);
     });
   }
