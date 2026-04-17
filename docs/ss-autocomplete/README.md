@@ -132,7 +132,7 @@ Varje objekt i `fields`-arrayen styr ett specifikt fält.
 | **`data`** | `array` | En statisk array med objekt som ska sökas igenom. *(Högst prioritet)* |
 | **`dataUrl`** | `string` | En URL för att hämta JSON-data asynkront via `fetch`. |
 | **`listPath`** | `string` | Om API-svaret är nästlat (t.ex. `"data.schools"`), anger du sökvägen till arrayen här. |
-| **`mapItem`** | `function` | Formaterar inkommande data till `{ id, label, statusColor (optional) }`. |
+| **`mapItem`** | `function` | Formaterar inkommande data till `{ id, label, statusColor?, statusImages?, statusText? }`. De egenskaperna med `?` är inte obligatoriska. |
 | **`filterItem`** | `function` | Filtrerar bort objekt från listan innan de görs sökbara. |
 
 ### 3. Inskickning (Submit)
@@ -254,6 +254,31 @@ SSAutocomplete.init({
 > **💡 Tips för egna färger:** > Vill du använda en helt egen färg som inte finns i `STATUS_COLORS`? Du kan skicka in ett anpassat objekt med en inre (`inner`) och yttre (`outer`) färgkod direkt:
 > `statusColor: { inner: "#9b59b6", outer: "rgba(155, 89, 182, 0.3)" }`
 
+### Tillgänglighet & Ikoner
+För att stödja användare med färgblindhet eller de som använder skärmläsare, kan du lägga till bilder till höger och en gömd beskrivande text. 
+
+| Egenskap | Typ | Beskrivning |
+| :--- | :--- | :--- |
+| **`statusImages`** | `array` | En lista med URL:er till ikoner som visas längst till höger. |
+| **`statusText`** | `string` | Beskrivande status som läses upp av skärmläsare (men inte syns). |
+
+**Exempel:**
+```javascript
+mapItem: (item) => {
+  const icons = [];
+  if (item.isDigital) icons.push("/icons/wifi.png");
+  if (item.isCertified) icons.push("/icons/star.png");
+
+  return {
+    id: item.id,
+    label: item.name,
+    statusColor: SSAutocomplete.STATUS_COLORS.green,
+    statusImages: icons,
+    statusText: "Distansutbildning, Kvalitetssäkrad"
+  };
+}
+```
+
 ---
 
 ## 🎨 Styling
@@ -264,4 +289,5 @@ SSAutocomplete är byggt för att ärva så mycket som möjligt från ditt Squar
 * `.ssac-item`: Varje enskilt resultat.
 * `.ssac-item[aria-selected="true"]`: Resultatet som just nu är markerat.
 * `.ssac-muted`: Tomt tillstånd (t.ex. texten "Inga träffar").
-* `.ssac-status-dot`: Grundläggande styling för indikatorerna. 
+* `.ssac-status-dot`: Grundläggande styling för status-indikatorerna. 
+* `.ssac-status-image`: Grundläggande styling för status-ikonerna. 

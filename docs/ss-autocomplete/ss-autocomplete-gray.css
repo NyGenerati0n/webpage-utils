@@ -68,3 +68,30 @@
   background-color: transparent;
   flex-shrink: 0;
 }
+
+.ssac-status-container {
+  margin-left: auto;
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  align-items: center;
+}
+
+.ssac-status-image {
+  height: 1.2rem;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+/* Standardiserad klass för att dölja text visuellt, men behålla den för skärmläsare */
+.ssac-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
