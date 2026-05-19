@@ -141,6 +141,7 @@ Varje objekt i `fields`-arrayen styr ett specifikt fält.
 | **`isRequired`** | `boolean` | Tvingar användaren att göra ett giltigt val från listan. |
 | **`removeRequiredSuffix`**| `boolean` | Rensar bort "(Krävs)" från etiketten om fältet är `isRequired: false` (Standard: `true`). |
 | **`submitValue`** | `string` | Vad som skickas in: `"label"` eller `"id"` (Standard: `"label"`). |
+| **`getSubmitValue`** | `function` | Formaterar den textsträng som används vid inskickning. Funktionen får det markerade värdet som argument och körs oberoende av vad fältet `submitValue` har för värde. |
 | **`sentinelValue`** | `string` | Ett osynligt utfyllnadsvärde som används om fältet lämnas tomt (och inte är required) för att undvika valideringsfel i Squarespace (Standard: `"__SS_EMPTY__"`). |
 
 ---
